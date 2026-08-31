@@ -7,6 +7,7 @@ import com.homiq.app.data.local.entity.ExpenseEntity
 import com.homiq.app.data.local.entity.PaymentEntity
 import com.homiq.app.data.local.entity.PropertyEntity
 import com.homiq.app.data.local.model.BookingBalanceRow
+import com.homiq.app.data.local.model.PropertyAmountRow
 import kotlinx.coroutines.flow.Flow
 
 interface PropertyRepository {
@@ -38,6 +39,16 @@ interface BookingRepository {
 }
 
 interface PaymentRepository {
+    fun observeRevenueInRangeSen(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<Long>
+
+    fun observeRevenueByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<PropertyAmountRow>>
+
     fun observeBookingBalances(): Flow<List<BookingBalanceRow>>
     fun observeForBooking(bookingId: String): Flow<List<PaymentEntity>>
     fun observeTotalPaidSen(bookingId: String): Flow<Long>
@@ -54,6 +65,11 @@ interface DepositRepository {
 }
 
 interface ExpenseRepository {
+    fun observeByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<PropertyAmountRow>>
+
     fun observeAll(): Flow<List<ExpenseEntity>>
     fun observeInRange(
         startEpochDay: Long,

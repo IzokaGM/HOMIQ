@@ -230,4 +230,37 @@
 <string name="error_deposit_not_found">No deposit record exists for this booking.</string>
 <string name="error_deposit_state">This deposit action is not valid in its current state.</string>
 <string name="error_deposit_return_exceeds">The return amount exceeds the deposit remaining.</string>
+<string name="money_live_subtitle">Cash received, operating costs and net income for each month.</string>
+<string name="current_month">Current month</string>
+<string name="cash_basis_title">Cash-based view</string>
+<string name="cash_basis_body">Revenue counts booking payments actually received in this month. Unpaid booking balances are not revenue yet, and security deposits are excluded completely.</string>
+<string name="property_breakdown">Property breakdown</string>
+<string name="no_money_activity">No money activity</string>
+<string name="no_money_activity_body">Payments and expenses recorded for this month will appear here.</string>
+<string name="expense_history">Expenses this month</string>
+<string name="no_expenses_this_month">No expenses recorded</string>
+<string name="no_expenses_this_month_body">Add operating costs so HOMIQ can calculate a realistic net income.</string>
+<string name="expense_form_subtitle">Record an operating cost. It can belong to one homestay or remain a general business expense.</string>
+<string name="expense_general_title">Property is optional</string>
+<string name="expense_general_body">Choose General expense for costs shared by the business, such as common supplies or administration.</string>
+<string name="expense_property">Expense property</string>
+<string name="general_expense">General expense</string>
+<string name="expense_amount">Expense amount</string>
+<string name="expense_date">Expense date</string>
+<string name="expense_category">Category</string>
+<string name="expense_description">Description</string>
+<string name="save_expense">Save expense</string>
+
+<string name="expense_cleaning">Cleaning</string>
+<string name="expense_electricity">Electricity</string>
+<string name="expense_water">Water</string>
+<string name="expense_internet">Internet</string>
+<string name="expense_supplies">Supplies</string>
+<string name="expense_maintenance">Maintenance</string>
+<string name="expense_laundry">Laundry</string>
+<string name="expense_platform_fee">Platform fee</string>
+<string name="expense_other">Other</string>
+
+<string name="error_invalid_expense_amount">Enter an expense amount greater than zero.</string>
+<string name="error_expense_property_not_found">The selected property is no longer available.</string>
 </resources>

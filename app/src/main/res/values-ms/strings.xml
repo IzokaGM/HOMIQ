@@ -230,4 +230,37 @@
 <string name="error_deposit_not_found">Tiada rekod deposit untuk tempahan ini.</string>
 <string name="error_deposit_state">Tindakan deposit ini tidak sah untuk status semasa.</string>
 <string name="error_deposit_return_exceeds">Jumlah pemulangan melebihi baki deposit.</string>
+<string name="money_live_subtitle">Wang diterima, kos operasi dan pendapatan bersih bagi setiap bulan.</string>
+<string name="current_month">Bulan semasa</string>
+<string name="cash_basis_title">Paparan berasaskan tunai</string>
+<string name="cash_basis_body">Hasil hanya mengira bayaran tempahan yang benar-benar diterima dalam bulan ini. Baki tempahan belum menjadi hasil dan deposit keselamatan dikecualikan sepenuhnya.</string>
+<string name="property_breakdown">Pecahan homestay</string>
+<string name="no_money_activity">Tiada aktiviti kewangan</string>
+<string name="no_money_activity_body">Bayaran dan perbelanjaan yang direkod dalam bulan ini akan muncul di sini.</string>
+<string name="expense_history">Perbelanjaan bulan ini</string>
+<string name="no_expenses_this_month">Tiada perbelanjaan direkod</string>
+<string name="no_expenses_this_month_body">Tambah kos operasi supaya HOMIQ boleh mengira pendapatan bersih yang lebih tepat.</string>
+<string name="expense_form_subtitle">Rekod kos operasi. Ia boleh dikaitkan dengan satu homestay atau kekal sebagai perbelanjaan umum.</string>
+<string name="expense_general_title">Homestay adalah pilihan</string>
+<string name="expense_general_body">Pilih Perbelanjaan umum untuk kos yang dikongsi oleh perniagaan seperti bekalan bersama atau pentadbiran.</string>
+<string name="expense_property">Homestay perbelanjaan</string>
+<string name="general_expense">Perbelanjaan umum</string>
+<string name="expense_amount">Jumlah perbelanjaan</string>
+<string name="expense_date">Tarikh perbelanjaan</string>
+<string name="expense_category">Kategori</string>
+<string name="expense_description">Keterangan</string>
+<string name="save_expense">Simpan perbelanjaan</string>
+
+<string name="expense_cleaning">Pembersihan</string>
+<string name="expense_electricity">Elektrik</string>
+<string name="expense_water">Air</string>
+<string name="expense_internet">Internet</string>
+<string name="expense_supplies">Bekalan</string>
+<string name="expense_maintenance">Penyelenggaraan</string>
+<string name="expense_laundry">Dobi</string>
+<string name="expense_platform_fee">Caj platform</string>
+<string name="expense_other">Lain-lain</string>
+
+<string name="error_invalid_expense_amount">Masukkan jumlah perbelanjaan lebih daripada sifar.</string>
+<string name="error_expense_property_not_found">Homestay yang dipilih tidak lagi tersedia.</string>
 </resources>

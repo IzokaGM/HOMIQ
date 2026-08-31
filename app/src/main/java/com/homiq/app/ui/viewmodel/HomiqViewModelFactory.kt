@@ -6,6 +6,7 @@ import com.homiq.app.data.HomiqAppContainer
 import com.homiq.app.domain.BookingManager
 import com.homiq.app.domain.BlockedDateManager
 import com.homiq.app.domain.DepositManager
+import com.homiq.app.domain.ExpenseManager
 import com.homiq.app.domain.PaymentManager
 
 class HomiqViewModelFactory(
@@ -60,6 +61,18 @@ class HomiqViewModelFactory(
                     depositManager = DepositManager(
                         bookings = container.bookings,
                         deposits = container.deposits,
+                    ),
+                ) as T
+
+
+            modelClass.isAssignableFrom(MoneyViewModel::class.java) ->
+                MoneyViewModel(
+                    propertyRepository = container.properties,
+                    expenseRepository = container.expenses,
+                    paymentRepository = container.payments,
+                    expenseManager = ExpenseManager(
+                        properties = container.properties,
+                        expenses = container.expenses,
                     ),
                 ) as T
 

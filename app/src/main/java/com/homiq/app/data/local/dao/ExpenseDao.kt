@@ -44,6 +44,24 @@ interface ExpenseDao {
         endEpochDayExclusive: Long,
     ): Flow<Long>
 
+
+    @Query(
+        """
+        SELECT
+            propertyId AS propertyId,
+            COALESCE(SUM(amountSen), 0) AS amountSen
+        FROM expenses
+        WHERE isDeleted = 0
+          AND expenseDateEpochDay >= :startEpochDay
+          AND expenseDateEpochDay < :endEpochDayExclusive
+        GROUP BY propertyId
+        """,
+    )
+    fun observeByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<com.homiq.app.data.local.model.PropertyAmountRow>>
+
     @Query("SELECT * FROM expenses WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): ExpenseEntity?
 

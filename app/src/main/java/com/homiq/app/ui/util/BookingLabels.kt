@@ -5,11 +5,13 @@ import com.homiq.app.R
 import com.homiq.app.data.model.BookingSource
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.data.model.DepositStatus
+import com.homiq.app.data.model.ExpenseCategory
 import com.homiq.app.data.model.PaymentMethod
 import com.homiq.app.domain.BookingSaveIssue
 import com.homiq.app.domain.BlockedDateSaveIssue
 import com.homiq.app.domain.PropertySaveIssue
 import com.homiq.app.domain.DepositActionIssue
+import com.homiq.app.domain.ExpenseSaveIssue
 import com.homiq.app.domain.PaymentSaveIssue
 
 @StringRes
@@ -112,4 +114,26 @@ fun DepositActionIssue.messageRes(): Int = when (this) {
         R.string.error_deposit_state
     DepositActionIssue.RETURN_EXCEEDS_REMAINING ->
         R.string.error_deposit_return_exceeds
+}
+
+
+@StringRes
+fun ExpenseCategory.labelRes(): Int = when (this) {
+    ExpenseCategory.CLEANING -> R.string.expense_cleaning
+    ExpenseCategory.ELECTRICITY -> R.string.expense_electricity
+    ExpenseCategory.WATER -> R.string.expense_water
+    ExpenseCategory.INTERNET -> R.string.expense_internet
+    ExpenseCategory.SUPPLIES -> R.string.expense_supplies
+    ExpenseCategory.MAINTENANCE -> R.string.expense_maintenance
+    ExpenseCategory.LAUNDRY -> R.string.expense_laundry
+    ExpenseCategory.PLATFORM_FEE -> R.string.expense_platform_fee
+    ExpenseCategory.OTHER -> R.string.expense_other
+}
+
+@StringRes
+fun ExpenseSaveIssue.messageRes(): Int = when (this) {
+    ExpenseSaveIssue.INVALID_AMOUNT ->
+        R.string.error_invalid_expense_amount
+    ExpenseSaveIssue.PROPERTY_NOT_FOUND ->
+        R.string.error_expense_property_not_found
 }

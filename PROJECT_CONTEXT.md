@@ -519,17 +519,27 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Deposit remaining calculation
 - [x] Deposit remains separate from booking payment and revenue
 - [x] Payment and deposit unit tests
-- [x] Confirm Phase 5 files build successfully after repository upload
+- [ ] Confirm Phase 5 files build successfully after repository upload
 
 ### Phase 6: Expenses and money
 
-- [ ] Expense entry
-- [ ] Expense categories
-- [ ] Revenue calculation
-- [ ] Expense calculation
-- [ ] Net income calculation
-- [ ] Monthly summary
-- [ ] Property breakdown
+- [x] Expense entry
+- [x] Optional property assignment for expenses
+- [x] General business expenses
+- [x] Expense categories
+- [x] Expense history for selected month
+- [x] Cash-based revenue calculation from received payments
+- [x] Expense calculation
+- [x] Net income calculation
+- [x] Deposit exclusion from revenue and expenses
+- [x] Previous/next month Money navigation
+- [x] Monthly summary
+- [x] Revenue per property
+- [x] Expenses per property
+- [x] Net income per property
+- [x] General expense separated from property profitability
+- [x] Expense and money calculation unit tests
+- [x] Confirm Phase 6 files build successfully after repository upload
 
 ### Phase 7: Dashboard and reports
 
@@ -611,25 +621,42 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 5 files are uploaded:
+Expected repository state after Phase 6 files are uploaded:
 
-- Product shell, Room database, Properties, Bookings and Calendar remain functional.
-- Payments are now real Room-backed records.
-- Global Record Payment lists bookings that still have an outstanding balance.
-- Owner can record multiple payments against one booking.
-- Booking Details shows total, paid, outstanding and payment history.
-- Overpayment is rejected by domain validation.
-- Security deposits are managed separately from booking payments.
-- Deposit lifecycle supports Not Required, Pending, Received, Partially Returned, Returned and Retained.
-- Deposit returns cannot exceed the remaining deposit.
-- Deposit money never increases booking paid amount and is reserved from revenue calculations.
-- No database migration is required for Phase 5 because Payment and Deposit tables already existed.
-- Expense entry and profit calculations remain deferred to Phase 6.
-- Home and Money aggregate figures will become live in Phase 6 and Phase 7.
+- Product shell, Room database, Properties, Bookings, Calendar, Payments and Deposits remain functional.
+- Add Expense is functional from global quick add and the Money screen.
+- Expense can be assigned to one property or stored as a General expense.
+- Expense categories are persisted in Room.
+- Money screen is live and supports previous/current/next month navigation.
+- Revenue is cash-based and counts booking payments received during the selected month.
+- Outstanding booking balances are not counted as revenue.
+- Security deposits are excluded from revenue, expenses and net income.
+- Net income is Revenue minus Expenses and may be negative.
+- Money shows property-level revenue, expenses and net income.
+- General expenses remain separate instead of being artificially allocated to properties.
+- Current-month expense history is visible in Money.
+- No database migration or new external dependency is required for Phase 6.
+- Home dashboard and occupancy/source analytics remain Phase 7.
 - No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green Phase 5 build is Phase 6: Expenses and Money.
+- Next development task after a green Phase 6 build is Phase 7: Dashboard and Reports.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 6
+
+- Activated Room-backed expense entry.
+- Added optional property assignment and General expenses.
+- Added all locked expense categories.
+- Connected Money to real payment and expense data.
+- Locked cash-based revenue to payments actually received in the selected month.
+- Added monthly Revenue, Expenses and Net Income.
+- Added property-level profitability breakdown.
+- Kept General expenses separate instead of inventing allocations.
+- Preserved strict security-deposit exclusion from financial results.
+- Added expense history for the selected month.
+- Added expense and financial formula unit tests.
+- Added `docs/MONEY_FLOW.md`.
+- Added no schema migration and no external dependency.
 
 ### 31 August 2026, Phase 5
 

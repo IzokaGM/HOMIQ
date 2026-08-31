@@ -48,6 +48,44 @@ interface PaymentDao {
     )
     fun observeBookingBalances(): Flow<List<BookingBalanceRow>>
 
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(p.amountSen), 0)
+        FROM payments p
+        INNER JOIN bookings b
+            ON b.id = p.bookingId
+        WHERE p.isDeleted = 0
+          AND b.isDeleted = 0
+          AND p.paymentDateEpochDay >= :startEpochDay
+          AND p.paymentDateEpochDay < :endEpochDayExclusive
+        """,
+    )
+    fun observeRevenueInRangeSen(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<Long>
+
+    @Query(
+        """
+        SELECT
+            b.propertyId AS propertyId,
+            COALESCE(SUM(p.amountSen), 0) AS amountSen
+        FROM payments p
+        INNER JOIN bookings b
+            ON b.id = p.bookingId
+        WHERE p.isDeleted = 0
+          AND b.isDeleted = 0
+          AND p.paymentDateEpochDay >= :startEpochDay
+          AND p.paymentDateEpochDay < :endEpochDayExclusive
+        GROUP BY b.propertyId
+        """,
+    )
+    fun observeRevenueByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<com.homiq.app.data.local.model.PropertyAmountRow>>
+
     @Query("SELECT * FROM payments WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): PaymentEntity?
 

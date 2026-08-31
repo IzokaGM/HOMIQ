@@ -13,6 +13,7 @@ import com.homiq.app.data.local.entity.ExpenseEntity
 import com.homiq.app.data.local.entity.PaymentEntity
 import com.homiq.app.data.local.entity.PropertyEntity
 import com.homiq.app.data.local.model.BookingBalanceRow
+import com.homiq.app.data.local.model.PropertyAmountRow
 import kotlinx.coroutines.flow.Flow
 
 private fun now(): Long = System.currentTimeMillis()
@@ -106,6 +107,24 @@ class RoomBookingRepository(
 class RoomPaymentRepository(
     private val dao: PaymentDao,
 ) : PaymentRepository {
+    override fun observeRevenueInRangeSen(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<Long> =
+        dao.observeRevenueInRangeSen(
+            startEpochDay,
+            endEpochDayExclusive,
+        )
+
+    override fun observeRevenueByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<PropertyAmountRow>> =
+        dao.observeRevenueByPropertyInRange(
+            startEpochDay,
+            endEpochDayExclusive,
+        )
+
     override fun observeBookingBalances(): Flow<List<BookingBalanceRow>> =
         dao.observeBookingBalances()
 
@@ -146,6 +165,15 @@ class RoomDepositRepository(
 class RoomExpenseRepository(
     private val dao: ExpenseDao,
 ) : ExpenseRepository {
+    override fun observeByPropertyInRange(
+        startEpochDay: Long,
+        endEpochDayExclusive: Long,
+    ): Flow<List<PropertyAmountRow>> =
+        dao.observeByPropertyInRange(
+            startEpochDay,
+            endEpochDayExclusive,
+        )
+
     override fun observeAll(): Flow<List<ExpenseEntity>> = dao.observeAll()
 
     override fun observeInRange(

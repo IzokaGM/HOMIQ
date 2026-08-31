@@ -55,6 +55,7 @@ import com.homiq.app.ui.screens.HomeScreen
 import com.homiq.app.ui.screens.PaymentFormScreen
 import com.homiq.app.ui.screens.PaymentBookingPickerScreen
 import com.homiq.app.ui.screens.DepositScreen
+import com.homiq.app.ui.screens.ExpenseFormScreen
 import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
@@ -64,6 +65,7 @@ import com.homiq.app.ui.viewmodel.BookingViewModel
 import com.homiq.app.ui.viewmodel.CalendarViewModel
 import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
 import com.homiq.app.ui.viewmodel.FinanceViewModel
+import com.homiq.app.ui.viewmodel.MoneyViewModel
 import com.homiq.app.ui.viewmodel.PropertyViewModel
 import kotlinx.coroutines.launch
 
@@ -88,6 +90,7 @@ private enum class HomiqRoute {
     PAYMENT_PICKER,
     PAYMENT_FORM,
     DEPOSIT,
+    EXPENSE_FORM,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,6 +115,9 @@ fun HomiqApp() {
         factory = factory,
     )
     val financeViewModel: FinanceViewModel = viewModel(
+        factory = factory,
+    )
+    val moneyViewModel: MoneyViewModel = viewModel(
         factory = factory,
     )
 
@@ -211,6 +217,9 @@ fun HomiqApp() {
                     id = routeId,
                 )
 
+            HomiqRoute.EXPENSE_FORM ->
+                goMain(HomiqDestination.Money)
+
             HomiqRoute.PROPERTIES ->
                 goMain(HomiqDestination.More)
 
@@ -309,6 +318,10 @@ fun HomiqApp() {
                 )
 
                 HomiqDestination.Money -> MoneyScreen(
+                    viewModel = moneyViewModel,
+                    onAddExpense = {
+                        navigate(HomiqRoute.EXPENSE_FORM)
+                    },
                     modifier = Modifier.padding(innerPadding),
                 )
 
@@ -465,6 +478,16 @@ fun HomiqApp() {
                     }
                 }
 
+
+                HomiqRoute.EXPENSE_FORM ->
+                    ExpenseFormScreen(
+                        viewModel = moneyViewModel,
+                        onSaved = {
+                            goMain(HomiqDestination.Money)
+                        },
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
                 HomiqRoute.MAIN -> Unit
             }
         }
@@ -521,11 +544,7 @@ fun HomiqApp() {
                     title = stringResource(R.string.add_expense),
                     onClick = {
                         showQuickAdd = false
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                unavailableMessage,
-                            )
-                        }
+                        navigate(HomiqRoute.EXPENSE_FORM)
                     },
                 )
 
