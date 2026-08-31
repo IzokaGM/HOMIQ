@@ -29,10 +29,10 @@ android {
             keyPassword = "homiq-debug"
         }
 
-        val releaseStorePath = System.getenv("HOMIQU_KEYSTORE_PATH")
-        val releaseStorePassword = System.getenv("HOMIQU_KEYSTORE_PASSWORD")
-        val releaseKeyAlias = System.getenv("HOMIQU_KEY_ALIAS")
-        val releaseKeyPassword = System.getenv("HOMIQU_KEY_PASSWORD")
+        val releaseStorePath = System.getenv("HOMIKA_KEYSTORE_PATH") ?: System.getenv("HOMIQU_KEYSTORE_PATH")
+        val releaseStorePassword = System.getenv("HOMIKA_KEYSTORE_PASSWORD") ?: System.getenv("HOMIQU_KEYSTORE_PASSWORD")
+        val releaseKeyAlias = System.getenv("HOMIKA_KEY_ALIAS") ?: System.getenv("HOMIQU_KEY_ALIAS")
+        val releaseKeyPassword = System.getenv("HOMIKA_KEY_PASSWORD") ?: System.getenv("HOMIQU_KEY_PASSWORD")
 
         if (
             !releaseStorePath.isNullOrBlank() &&

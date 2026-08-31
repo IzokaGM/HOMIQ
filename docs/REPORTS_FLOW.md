@@ -1,4 +1,4 @@
-# HOMIQU Dashboard and Reports
+# Homika Dashboard and Reports
 
 Phase 7 activates the operational Home dashboard and business reports.
 
@@ -66,7 +66,7 @@ This avoids treating owner-blocked or maintenance dates as sellable capacity.
 
 Source analytics uses bookings whose check-in date is inside the selected report period.
 
-For each source HOMIQU shows:
+For each source Homika shows:
 
 - Booking count
 - Booked value

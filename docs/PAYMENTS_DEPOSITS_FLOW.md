@@ -1,4 +1,4 @@
-# HOMIQU Payments and Deposits Flow
+# Homika Payments and Deposits Flow
 
 Phase 5 activates the Payment and Deposit tables created in Phase 2.
 

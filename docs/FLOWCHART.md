@@ -1,4 +1,4 @@
-# HOMIQU Flowchart
+# Homika Flowchart
 
 This file indexes the core operational flows.
 
@@ -7,8 +7,8 @@ This file indexes the core operational flows.
 
 ```mermaid
 flowchart TD
-    A[HOMIQU starts] --> B{PIN exists?}
-    B -- No --> C[Open HOMIQU]
+    A[Homika starts] --> B{PIN exists?}
+    B -- No --> C[Open Homika]
     B -- Yes --> D[Locked screen]
     D --> E{PIN correct?}
     E -- Yes --> C

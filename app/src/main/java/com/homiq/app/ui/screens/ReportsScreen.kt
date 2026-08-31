@@ -95,10 +95,10 @@ fun ReportsScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            start = 20.dp,
-            top = 24.dp,
-            end = 20.dp,
-            bottom = 40.dp,
+            start = 16.dp,
+            top = 18.dp,
+            end = 16.dp,
+            bottom = 32.dp,
         ),
         verticalArrangement =
             Arrangement.spacedBy(18.dp),
@@ -581,7 +581,7 @@ private fun buildShareText(
     occupancyLabel: String,
     bookingLabel: String,
 ): String = buildString {
-    append("HOMIQU · ")
+    append("Homika · ")
     append(periodLabel)
     append('\n')
     append(revenueLabel)

@@ -11,7 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.HOMIQU">
+        android:theme="@style/Theme.Homika">
 
         <activity
             android:name=".MainActivity"

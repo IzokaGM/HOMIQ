@@ -1,10 +1,10 @@
-# HOMIQU Private Release
+# Homika Private Release
 
-HOMIQU V1 is distributed privately as an APK. It is not a Play Store product.
+Homika V1 is distributed privately as an APK. It is not a Play Store product.
 
 ## Identity
 
-- App display name: `HOMIQU`
+- App display name: `Homika`
 - Android application ID remains: `com.homiq.app`
 - V1 version: `1.0.0` (`versionCode 10000`)
 - Release SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`
@@ -16,12 +16,12 @@ Keeping `com.homiq.app` preserves the Room database, SharedPreferences, backup c
 
 The private release key is **not stored in the repository**. `app/build.gradle.kts` reads release signing only from these environment variables:
 
-- `HOMIQU_KEYSTORE_PATH`
-- `HOMIQU_KEYSTORE_PASSWORD`
-- `HOMIQU_KEY_ALIAS`
-- `HOMIQU_KEY_PASSWORD`
+- `Homika_KEYSTORE_PATH`
+- `Homika_KEYSTORE_PASSWORD`
+- `Homika_KEY_ALIAS`
+- `Homika_KEY_PASSWORD`
 
-The separate `private-release.yml` workflow reconstructs the keystore from GitHub Actions secret `HOMIQU_KEYSTORE_BASE64`, builds `assembleRelease`, verifies the APK certificate and uploads a versioned APK artifact.
+The separate `private-release.yml` workflow reconstructs the keystore from GitHub Actions secret `Homika_KEYSTORE_BASE64`, builds `assembleRelease`, verifies the APK certificate and uploads a versioned APK artifact.
 
 Never commit the release keystore or the release-secret text file. Keep an offline copy. Losing the release key prevents future signed updates to installed private-release APKs.
 
@@ -43,7 +43,7 @@ The release certificate is intentionally different from the Phase 10 debug certi
 3. Uninstall the old debug build.
 4. Install the V1 private-release APK.
 5. Connect the same Google account and sync, or restore the local backup.
-6. Future HOMIQU private releases signed with this same release key will update V1 normally.
+6. Future Homika private releases signed with this same release key will update V1 normally.
 
 ## Compatibility retained
 

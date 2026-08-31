@@ -1,4 +1,4 @@
-# HOMIQU Property and Booking Flow
+# Homika Property and Booking Flow
 
 Phase 3 turns the local data foundation into the first real owner workflow.
 

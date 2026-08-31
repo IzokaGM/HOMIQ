@@ -196,10 +196,10 @@ fun CalendarScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            start = 20.dp,
-            top = 24.dp,
-            end = 20.dp,
-            bottom = 104.dp,
+            start = 16.dp,
+            top = 18.dp,
+            end = 16.dp,
+            bottom = 116.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

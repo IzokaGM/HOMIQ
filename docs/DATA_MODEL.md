@@ -1,10 +1,10 @@
-# HOMIQU Local Data Model
+# Homika Local Data Model
 
 Phase 2 establishes the first persistent business-data schema.
 
 ## Storage engine
 
-HOMIQU uses Room 2.8.4 over SQLite for the Android local database.
+Homika uses Room 2.8.4 over SQLite for the Android local database.
 
 Database file:
 

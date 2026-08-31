@@ -1,12 +1,12 @@
-# HOMIQU Project Context
+# Homika Project Context
 
-Last context reset: 31 August 2026 · HOMIQU V1 release phase
+Last context reset: 31 August 2026 · Homika professional UI/UX rebuild
 
-This file is the main source of truth for HOMIQU. Any AI, developer, or new ChatGPT account continuing this project must read this file and `docs/FLOWCHART.md` before proposing code changes.
+This file is the main source of truth for Homika. Any AI, developer, or new ChatGPT account continuing this project must read this file and `docs/FLOWCHART.md` before proposing code changes.
 
 ## 1. Resume protocol
 
-When continuing HOMIQU in a new conversation or account:
+When continuing Homika in a new conversation or account:
 
 1. Read this entire file.
 2. Read `docs/FLOWCHART.md`.
@@ -19,17 +19,17 @@ When continuing HOMIQU in a new conversation or account:
 
 Suggested resume prompt:
 
-`Read PROJECT_CONTEXT.md and docs/FLOWCHART.md, inspect the current repository, then continue HOMIQU from the first incomplete roadmap item without changing locked decisions.`
+`Read PROJECT_CONTEXT.md and docs/FLOWCHART.md, inspect the current repository, then continue Homika from the first incomplete roadmap item without changing locked decisions.`
 
 ## 2. Product identity
 
-Name: HOMIQU
+Name: Homika
 
 Type: Private homestay management app for the owner.
 
 Primary purpose: Record and manage bookings that have already been received manually from WhatsApp or any other source, then track operations and money in one place.
 
-HOMIQU is not:
+Homika is not:
 
 - A public booking platform.
 - A marketplace for guests.
@@ -38,11 +38,28 @@ HOMIQU is not:
 - A subscription SaaS product.
 - Dependent on a server for basic daily use.
 
+
+## Current visual direction — locked
+
+Homika is undergoing a full professional UI/UX rebuild before the private 1.0 release. This is not a cosmetic Material-theme pass; the presentation layer is being rebuilt while the existing Room/domain/backup/sync/security engines remain intact.
+
+Locked visual decisions:
+
+- Official brand is **Homika** (title case).
+- Official logo direction is the modern/friendly mint-teal geometric home + H mark on a deep dark background (concept #1 selected by the owner).
+- Product feel: premium hospitality operations + modern property-management SaaS.
+- Information hierarchy must be calm, compact and business-focused.
+- Bottom-navigation labels must never wrap; support narrow Android phones and larger font/display scaling.
+- Bahasa Melayu and English are equal first-class languages and both choices must always be visible in settings/onboarding.
+- First-run flow: Welcome → language → optional Google Drive connection → optional PIN → first property/dashboard.
+- Existing package ID remains `com.homiq.app` to preserve installed data and Google OAuth compatibility.
+- Existing database IDs, backup compatibility markers and sync formats must not be renamed just for branding.
+
 ## 3. Locked requirements
 
 These decisions are locked unless the owner explicitly changes them.
 
-- App name is HOMIQU.
+- App name is Homika (title case).
 - Android first.
 - Kotlin and Jetpack Compose.
 - Owner only.
@@ -151,7 +168,7 @@ Double booking prevention is required.
 
 ### Payments
 
-Payments are records only. HOMIQU does not process money.
+Payments are records only. Homika does not process money.
 
 A booking can have multiple payment entries.
 
@@ -240,7 +257,7 @@ A dedicated first-launch language onboarding screen can be added later if it imp
 
 ## 7. Visual direction
 
-Phase 1 establishes the HOMIQU visual foundation.
+Phase 1 establishes the Homika visual foundation.
 
 Direction:
 
@@ -259,7 +276,7 @@ The theme is implemented through `ui/theme`.
 
 ## 8. Local first architecture
 
-Daily HOMIQU usage must not depend on internet access.
+Daily Homika usage must not depend on internet access.
 
 Target data flow:
 
@@ -333,7 +350,7 @@ Google Drive backup is a disaster recovery mechanism, not the live sync engine.
 
 Goal:
 
-Phone A and Phone B signed into the same HOMIQU account can eventually share current data.
+Phone A and Phone B signed into the same Homika account can eventually share current data.
 
 Required behaviour:
 
@@ -367,7 +384,7 @@ Planned:
 - Backups must not expose data unnecessarily.
 - Cloud access should be scoped to the signed-in owner.
 
-The manifest disables Android automatic app backup because HOMIQU will implement explicit controlled backup and restore.
+The manifest disables Android automatic app backup because Homika will implement explicit controlled backup and restore.
 
 ## 13. Architecture
 
@@ -413,7 +430,7 @@ Preferred Android pattern:
 
 ### Phase 0: Foundation
 
-- [x] Lock product name HOMIQU
+- [x] Lock product name Homika
 - [x] Lock owner-only concept
 - [x] Lock bilingual requirement
 - [x] Lock local first direction
@@ -566,7 +583,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 
 ### Phase 8: Backup and restore
 
-- [x] Versioned portable HOMIQU backup format
+- [x] Versioned portable Homika backup format
 - [x] Backup all six Room business tables
 - [x] Preserve stable IDs, sync revisions and tombstones
 - [x] Consistent backup snapshot inside Room transaction
@@ -585,12 +602,12 @@ Phase 1 completion is considered final only after the uploaded files build succe
 
 ### Phase 9: Optional multi-device sync
 
-- [x] Google Drive selected as the HOMIQU sync layer
+- [x] Google Drive selected as the Homika sync layer
 - [x] Narrow drive.appdata OAuth scope
 - [x] Google Identity AuthorizationClient integration
 - [x] Private Drive appDataFolder storage
 - [x] Stable per-installation device UUID
-- [x] One sync file per HOMIQU installation
+- [x] One sync file per Homika installation
 - [x] Local Room remains primary and fully offline-capable
 - [x] Sync all six business tables
 - [x] Tombstone propagation
@@ -633,9 +650,27 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] PIN hashing/rule unit tests
 - [x] Confirm Phase 10 files build successfully after repository upload
 
+### Phase 11A: Professional UI/UX rebuild
+
+- [x] Lock official brand as Homika (title case)
+- [x] Lock modern/friendly mint-teal home + H logo direction
+- [x] Rebuild light/dark design tokens, typography and shapes
+- [x] Replace wrapping stock bottom navigation with compact single-line custom bar
+- [x] Add first-run Welcome / language / Google Drive / optional PIN onboarding
+- [x] Redesign Home dashboard around operational hierarchy
+- [x] Redesign Bookings list for fast scanning
+- [x] Redesign Money overview around cash movement and net income
+- [x] Redesign More/Settings into professional grouped settings
+- [x] Keep both Bahasa Melayu and English visible as explicit choices
+- [x] Redesign shared headers, metric cards, empty states, info cards and picker fields
+- [x] Normalize spacing across remaining screens
+- [x] Preserve package, Room schema, backup format, sync format and security engine
+- [ ] Confirm professional UI/UX rebuild builds successfully after repository upload
+- [ ] Owner visual approval on physical phone
+
 ### Phase 11: Final private release
 
-- [x] Rebrand user-facing HOMIQ identity to HOMIQU
+- [x] Rebrand user-facing HOMIQ identity to Homika
 - [x] Keep application ID `com.homiq.app` for data/OAuth continuity
 - [x] Version V1 as 1.0.0 / versionCode 10000
 - [x] Add launcher icon and final app label
@@ -646,8 +681,8 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Preserve old backup magic and sync identifiers for compatibility
 - [x] Add visible version/private-distribution information
 - [x] Update repository context and final release documentation
-- [x] Confirm Phase 11 files build successfully after repository upload
-- [ ] Generate signed HOMIQU 1.0.0 private-release APK
+- [ ] Confirm Phase 11 files build successfully after repository upload
+- [ ] Generate signed Homika 1.0.0 private-release APK
 - [ ] Fresh-install final APK on owner phone
 - [ ] Verify backup/Drive recovery after debug-to-release certificate transition
 
@@ -655,7 +690,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 
 V1 is complete only when the owner can:
 
-1. Install HOMIQU.
+1. Install Homika.
 2. Choose BM or English.
 3. Create at least one property.
 4. Enter a manual booking quickly.
@@ -676,9 +711,9 @@ V1 is complete only when the owner can:
 
 Expected repository state after Phase 11 files are uploaded:
 
-- User-facing brand is HOMIQU.
+- User-facing brand is Homika.
 - Android application ID intentionally remains `com.homiq.app`.
-- HOMIQU V1 is `1.0.0` with `versionCode 10000`.
+- Homika V1 is `1.0.0` with `versionCode 10000`.
 - Phase 10 PIN/biometric security remains active.
 - Two-phone Google Drive sync using the same Google account has been owner-tested successfully.
 - Debug OAuth identity remains available for development builds.
@@ -691,12 +726,24 @@ Expected repository state after Phase 11 files are uploaded:
 
 ## 17. Change log
 
+### 31 August 2026, Professional UI/UX rebuild
+
+- Owner rejected the previous presentation layer as not production quality.
+- Locked official brand as Homika and concept #1 logo direction.
+- Added professional hospitality/SaaS design system with restrained surfaces, compact typography and responsive spacing.
+- Added true first-run onboarding with BM/English, optional Google Drive connection, optional PIN and first-property handoff.
+- Rebuilt main bottom navigation so Malay labels never wrap on narrow phones.
+- Rebuilt Home, Bookings, Money and More.
+- Updated shared components and form pickers so the remaining screens inherit the new system.
+- Preserved `com.homiq.app`, Room schema v1, `HOMIQ_BACKUP`, Google Drive sync compatibility and existing domain rules.
+- No database migration.
+
 ### 31 August 2026, Phase 11
 
-- Rebranded all user-facing app copy from HOMIQ to HOMIQU.
+- Rebranded all user-facing app copy from HOMIQ to Homika.
 - Kept `com.homiq.app` and internal legacy identifiers for compatibility.
 - Set V1 version to 1.0.0 / versionCode 10000.
-- Added HOMIQU launcher icon and visible version information.
+- Added Homika launcher icon and visible version information.
 - Added secret-backed private release signing configuration.
 - Added private APK release workflow as a separate upload file.
 - Release SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`.
@@ -740,11 +787,11 @@ Expected repository state after Phase 11 files are uploaded:
 - Added Google Play services Auth 21.6.0.
 - Drive REST calls use platform HttpURLConnection, avoiding an unnecessary networking dependency.
 - Added INTERNET permission.
-- Added no database migration and no HOMIQU backend dependency.
+- Added no database migration and no Homika backend dependency.
 
 ### 31 August 2026, Phase 8
 
-- Added versioned HOMIQU JSON backup format.
+- Added versioned Homika JSON backup format.
 - Added complete logical snapshot of all six business tables.
 - Preserved sync-ready UUID, timestamp, revision and tombstone metadata.
 - Added Android Storage Access Framework backup creation.
@@ -852,7 +899,7 @@ Expected repository state after Phase 11 files are uploaded:
 
 ### 31 August 2026, Phase 1
 
-- Established HOMIQU deep-green and soft-mint visual system.
+- Established Homika deep-green and soft-mint visual system.
 - Added full five-tab product shell.
 - Added Home zero-state dashboard.
 - Added current-month Calendar shell.
@@ -865,7 +912,7 @@ Expected repository state after Phase 11 files are uploaded:
 
 ### 31 August 2026, Phase 0
 
-- HOMIQU name locked.
+- Homika name locked.
 - Owner-only manual homestay management concept locked.
 - Zero recurring operating cost requirement locked.
 - BM and English requirement locked.
