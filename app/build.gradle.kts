@@ -13,8 +13,8 @@ android {
         applicationId = "com.homiq.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10000
-        versionName = "1.0.0"
+        versionCode = System.getenv("HOMIKA_VERSION_CODE")?.toIntOrNull() ?: 10000
+        versionName = System.getenv("HOMIKA_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,8 +31,12 @@ android {
 
         val releaseStorePath = System.getenv("HOMIKA_KEYSTORE_PATH") ?: System.getenv("HOMIQU_KEYSTORE_PATH")
         val releaseStorePassword = System.getenv("HOMIKA_KEYSTORE_PASSWORD") ?: System.getenv("HOMIQU_KEYSTORE_PASSWORD")
-        val releaseKeyAlias = System.getenv("HOMIKA_KEY_ALIAS") ?: System.getenv("HOMIQU_KEY_ALIAS")
-        val releaseKeyPassword = System.getenv("HOMIKA_KEY_PASSWORD") ?: System.getenv("HOMIQU_KEY_PASSWORD")
+        val releaseKeyAlias = (System.getenv("HOMIKA_KEY_ALIAS") ?: System.getenv("HOMIQU_KEY_ALIAS"))
+            ?.takeIf { it.isNotBlank() }
+            ?: "homika"
+        val releaseKeyPassword = (System.getenv("HOMIKA_KEY_PASSWORD") ?: System.getenv("HOMIQU_KEY_PASSWORD"))
+            ?.takeIf { it.isNotBlank() }
+            ?: releaseStorePassword
 
         if (
             !releaseStorePath.isNullOrBlank() &&
@@ -40,7 +44,7 @@ android {
             !releaseKeyAlias.isNullOrBlank() &&
             !releaseKeyPassword.isNullOrBlank()
         ) {
-            create("homiquRelease") {
+            create("homikaRelease") {
                 storeFile = file(releaseStorePath)
                 storePassword = releaseStorePassword
                 keyAlias = releaseKeyAlias
@@ -55,7 +59,7 @@ android {
         }
 
         getByName("release") {
-            signingConfig = signingConfigs.findByName("homiquRelease")
+            signingConfig = signingConfigs.findByName("homikaRelease")
             isMinifyEnabled = false
             isShrinkResources = false
         }

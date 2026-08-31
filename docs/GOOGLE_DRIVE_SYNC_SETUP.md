@@ -148,6 +148,6 @@ Do not reuse the Phase 10 debug key as the production release key. Phase 11 will
 Private release signing uses a certificate separate from the Phase 10 debug build. Keep the existing debug Android OAuth client and create another Android client with:
 
 - Package: `com.homiq.app`
-- SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`
+- SHA-1: `9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1`
 
 Both clients use the same Google Cloud project, Drive API and `drive.appdata` scope.

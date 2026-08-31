@@ -1,52 +1,72 @@
 # Homika Private Release
 
-Homika V1 is distributed privately as an APK. It is not a Play Store product.
+Homika is distributed privately as a signed APK through GitHub Releases / Telegram. It is not a Play Store product.
 
-## Identity
+## Locked Android identity
 
-- App display name: `Homika`
-- Android application ID remains: `com.homiq.app`
-- V1 version: `1.0.0` (`versionCode 10000`)
-- Release SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`
-- Debug SHA-1 remains: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`
+- Display name: `Homika`
+- Android application ID: `com.homiq.app`
+- Default source version: `1.0.0` / `10000`
+- Stable debug SHA-1: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`
+- Stable private-release SHA-1: `9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1`
 
-Keeping `com.homiq.app` preserves the Room database, SharedPreferences, backup compatibility and OAuth package identity. Internal Kotlin class names may still use `Homiq`; these are implementation identifiers, not user-facing branding.
+The package ID stays `com.homiq.app` so Room data, SharedPreferences, backup compatibility, Drive sync identity and updater package validation stay compatible.
 
-## Release signing
+## Stable release key
 
-The private release key is **not stored in the repository**. `app/build.gradle.kts` reads release signing only from these environment variables:
+The actual private key must never be committed to the repository. The supplied offline key bundle contains the one stable release keystore generated for Homika. Keep at least two offline copies.
 
-- `Homika_KEYSTORE_PATH`
-- `Homika_KEYSTORE_PASSWORD`
-- `Homika_KEY_ALIAS`
-- `Homika_KEY_PASSWORD`
+GitHub Actions only needs these two repository secrets:
 
-The separate `private-release.yml` workflow reconstructs the keystore from GitHub Actions secret `Homika_KEYSTORE_BASE64`, builds `assembleRelease`, verifies the APK certificate and uploads a versioned APK artifact.
+- `HOMIKA_RELEASE_KEYSTORE_BASE64`
+- `HOMIKA_RELEASE_KEYSTORE_PASSWORD`
 
-Never commit the release keystore or the release-secret text file. Keep an offline copy. Losing the release key prevents future signed updates to installed private-release APKs.
+The alias is fixed as `homika`; the key password intentionally uses the same strong value as the keystore password to reduce secret setup mistakes.
 
-## Google OAuth
+`app/build.gradle.kts` accepts release values from environment variables and only enables release signing when the key is present. Debug builds continue using the existing stable debug certificate.
 
-The Phase 10 debug OAuth client remains valid for debug builds. Add a **second Android OAuth client** in the existing Google Cloud project for the private release certificate:
+## One-time GitHub setup
+
+1. Upload `private-release.yml` to `.github/workflows/private-release.yml`.
+2. Open GitHub repository **Settings -> Secrets and variables -> Actions**.
+3. Create both secrets using the exact values from the offline release-key bundle.
+4. Keep the offline keystore bundle outside the repository.
+
+## One-time Google OAuth setup for release APK
+
+Create another Android OAuth client in the same Google Cloud project:
 
 - Package: `com.homiq.app`
-- SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`
+- SHA-1: `9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1`
 
-Use the same Google Drive API and `drive.appdata` scope. No `google-services.json` is needed.
+Use the same Drive API / `drive.appdata` configuration. The existing debug OAuth client remains useful for debug APKs. No `google-services.json` is required by Homika's current Drive authorization implementation.
 
-## First transition from Phase 10 debug to V1 release
+## Publishing a release
 
-The release certificate is intentionally different from the Phase 10 debug certificate. Android therefore cannot install V1 release directly over the Phase 10 debug APK.
+Open **Actions -> Build Homika Private Release -> Run workflow**.
 
-1. Sync both phones and create a local backup.
-2. Add the release Android OAuth client above.
-3. Uninstall the old debug build.
-4. Install the V1 private-release APK.
+For the first private release use:
+
+- version_name: `1.0.0`
+- version_code: `10000`
+
+The workflow injects those values into Gradle, builds the signed APK, validates package/version/signature, creates a SHA-256 checksum and publishes:
+
+- `Homika-v1.0.0.apk`
+- `Homika-v1.0.0.apk.sha256`
+
+It also prints the release certificate SHA-1 in the Actions job summary.
+
+For an updater test, publish the next build as `1.0.1` / `10001`. The source file does not need a version edit just to create a release; the workflow inputs override the default values at build time.
+
+## First transition from debug to release
+
+Debug and release certificates are different, so Android cannot install the first release APK directly over the current debug APK.
+
+1. Sync Homika and create a local backup.
+2. Register the release SHA-1 above in Google Cloud.
+3. Uninstall the debug APK.
+4. Install `Homika-v1.0.0.apk`.
 5. Connect the same Google account and sync, or restore the local backup.
-6. Future Homika private releases signed with this same release key will update V1 normally.
 
-## Compatibility retained
-
-- Existing backup parser magic remains `HOMIQ_BACKUP` so older backups restore.
-- Existing hidden Drive sync filenames/IDs retain legacy `homiq` identifiers so the V1 release sees the already-synced data.
-- Database schema remains version 1.
+From that point onward, every APK made by the release workflow uses the same certificate and can update the installed release without clearing Homika data.

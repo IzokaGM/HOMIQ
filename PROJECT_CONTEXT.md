@@ -746,7 +746,7 @@ Expected repository state after Phase 11 files are uploaded:
 - Added Homika launcher icon and visible version information.
 - Added secret-backed private release signing configuration.
 - Added private APK release workflow as a separate upload file.
-- Release SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`.
+- Release SHA-1: `9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1`.
 - Preserved `HOMIQ_BACKUP` and legacy Drive sync identifiers for existing data.
 - No database migration.
 
@@ -960,3 +960,19 @@ Expected repository state after Phase 11 files are uploaded:
 - Stable signing is mandatory for seamless future updates. The first transition from development/debug signing to the final private release key may require backup -> uninstall debug -> install first release -> restore; subsequent releases must retain that same release certificate.
 - Added `docs/UPDATER.md` with release/version/signing procedure.
 - No database migration and no new external dependency.
+
+## Phase 11 private-release infrastructure (2026-09-01)
+
+- Homika remains private APK distribution; no Play Store dependency.
+- Updater implementation is build-green and uses GitHub Releases.
+- Stable private-release key generated outside the repository.
+- Stable release SHA-1: `9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1`.
+- `app/build.gradle.kts` supports workflow-injected versionName/versionCode and secret-backed release signing.
+- Release alias: `homika`.
+- GitHub only needs two Actions secrets: `HOMIKA_RELEASE_KEYSTORE_BASE64` and `HOMIKA_RELEASE_KEYSTORE_PASSWORD`.
+- One-time `private-release.yml` publishes signed `Homika-vX.Y.Z.apk` plus SHA-256 checksum to GitHub Releases.
+- Release workflow validates package `com.homiq.app`, versionName/versionCode and APK signature before publishing.
+- Release OAuth requires a second Android OAuth client for package `com.homiq.app` + release SHA-1 above.
+- First debug -> release transition requires backup/sync + uninstall because debug and release signatures intentionally differ.
+- After release v1.0.0 is installed, future stable-release APKs update in place and keep local data.
+- Updater end-to-end proof target: release v1.0.0 -> publish v1.0.1 -> update from inside Homika -> verify data retained.

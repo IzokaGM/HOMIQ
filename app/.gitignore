@@ -2,7 +2,7 @@
 # This key is development-only and intentionally tracked.
 !homiq-debug.keystore
 
-# HOMIQU private release keys are secrets and must never be committed.
+# Homika private release keys are secrets and must never be committed.
 *.jks
 *.p12
 *.pfx
