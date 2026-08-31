@@ -60,7 +60,7 @@ These decisions are locked unless the owner explicitly changes them.
 - The app must remain simple and fast.
 - Guest installation is never required.
 
-## 4. Main navigation target
+## 4. Main navigation
 
 Five primary bottom navigation destinations:
 
@@ -70,12 +70,14 @@ Five primary bottom navigation destinations:
 4. Money
 5. More
 
-A global add action will provide quick entry for:
+A global add action provides the shell for:
 
 - New booking
 - Record payment
 - Add expense
 - Block date
+
+Until the related data phases are implemented, quick-add actions intentionally show a development message instead of creating fake data.
 
 ## 5. Core feature scope
 
@@ -223,15 +225,39 @@ Supported languages:
 - Bahasa Melayu
 - English
 
-The first launch experience will eventually allow language selection.
+Runtime language selection is implemented in More using Android per-app locales.
 
-Language can later be changed from More > Settings > Language.
+Current behaviour:
 
-User-entered data is never translated.
+- User can select English.
+- User can select Bahasa Melayu.
+- AndroidX AppCompat handles backward-compatible locale switching.
+- Locale choice is auto-stored on Android 12 and lower.
+- `locales_config.xml` exposes English and Malay as supported app languages.
+- User-entered data is never translated.
 
-Phase 0 only establishes Android localisation resources. In-app manual language switching is a later implementation task.
+A dedicated first-launch language onboarding screen can be added later if it improves the final onboarding flow. It is not required for the Phase 1 shell.
 
-## 7. Local first architecture
+## 7. Visual direction
+
+Phase 1 establishes the HOMIQ visual foundation.
+
+Direction:
+
+- Modern, calm, clean and owner-focused.
+- Information first, without looking like enterprise property software.
+- Primary brand family: deep homestay green with soft mint surfaces.
+- Neutral off-white canvas in light mode.
+- Full dark mode support.
+- Rounded Material 3 cards with low elevation.
+- Financial cards prioritise legibility over decoration.
+- No neon styling.
+- No guest marketplace styling.
+- No unnecessary imagery in operational screens.
+
+The theme is implemented through `ui/theme`.
+
+## 8. Local first architecture
 
 Daily HOMIQ usage must not depend on internet access.
 
@@ -254,11 +280,9 @@ Planned local database: Room or the current recommended Android local persistenc
 
 Do not make cloud storage the only source for bookings.
 
-## 8. Account strategy
+## 9. Account strategy
 
 Account is optional.
-
-Target modes:
 
 ### Local only
 
@@ -278,7 +302,7 @@ Google account sign-in is the preferred route for Drive-linked backup because a 
 
 Any cloud provider must be evaluated against the zero recurring cost requirement before implementation.
 
-## 9. Backup strategy
+## 10. Backup strategy
 
 Backup and sync are separate features.
 
@@ -305,7 +329,7 @@ Required actions:
 
 Google Drive backup is a disaster recovery mechanism, not the live sync engine.
 
-## 10. Multi-device sync
+## 11. Multi-device sync
 
 Goal:
 
@@ -332,7 +356,7 @@ Initial conflict strategy to evaluate:
 
 Cloud implementation is not locked yet. It must be chosen only after verifying quota, cost, Android support, offline behaviour, and long-term maintenance.
 
-## 11. Security and privacy
+## 12. Security and privacy
 
 Planned:
 
@@ -343,15 +367,22 @@ Planned:
 - Backups must not expose data unnecessarily.
 - Cloud access should be scoped to the signed-in owner.
 
-The initial manifest disables Android automatic app backup because HOMIQ will implement explicit controlled backup and restore.
+The manifest disables Android automatic app backup because HOMIQ will implement explicit controlled backup and restore.
 
-## 12. Architecture target
+## 13. Architecture
 
 Start simple. Avoid premature over-engineering.
 
-Proposed package direction:
+Package root:
 
 `com.homiq.app`
+
+Current UI structure:
+
+- `ui/HomiqApp.kt`
+- `ui/components`
+- `ui/screens`
+- `ui/theme`
 
 Later packages may include:
 
@@ -366,7 +397,6 @@ Later packages may include:
 - ui.bookings
 - ui.money
 - ui.more
-- ui.components
 
 Preferred Android pattern:
 
@@ -379,7 +409,7 @@ Preferred Android pattern:
 - Local first persistence
 - Dependency injection only when complexity justifies it
 
-## 13. Development roadmap
+## 14. Development roadmap
 
 ### Phase 0: Foundation
 
@@ -397,14 +427,19 @@ Preferred Android pattern:
 
 ### Phase 1: Product shell
 
-- [ ] App theme and visual direction
-- [ ] Bottom navigation
-- [ ] Home placeholder
-- [ ] Calendar placeholder
-- [ ] Bookings placeholder
-- [ ] Money placeholder
-- [ ] More placeholder
-- [ ] Runtime language selection
+- [x] App theme and visual direction
+- [x] Bottom navigation
+- [x] Home shell
+- [x] Calendar shell with current-month grid
+- [x] Bookings shell
+- [x] Money shell
+- [x] More shell
+- [x] Global quick-add sheet
+- [x] Runtime language selection
+- [x] Dark mode theme foundation
+- [x] Confirm Phase 1 files build successfully after repository upload
+
+Phase 1 completion is considered final only after the uploaded files build successfully in the repository. If a compile correction is required, keep Phase 2 blocked until Phase 1 is green.
 
 ### Phase 2: Local data foundation
 
@@ -431,7 +466,7 @@ Preferred Android pattern:
 
 ### Phase 4: Calendar
 
-- [ ] Monthly calendar
+- [ ] Monthly calendar connected to data
 - [ ] Multi-property availability
 - [ ] Booking colour/state rules
 - [ ] Block date
@@ -460,7 +495,7 @@ Preferred Android pattern:
 
 ### Phase 7: Dashboard and reports
 
-- [ ] Today dashboard
+- [ ] Today dashboard connected to live data
 - [ ] Check-ins and check-outs
 - [ ] Occupancy formula
 - [ ] Booking source analytics
@@ -515,7 +550,7 @@ Preferred Android pattern:
 - [ ] APK distribution for owner use
 - [ ] Update repository context
 
-## 14. Definition of done for V1
+## 15. Definition of done for V1
 
 V1 is complete only when the owner can:
 
@@ -536,21 +571,38 @@ V1 is complete only when the owner can:
 15. Lock the app with device security.
 16. Recover data after reinstall or phone replacement using a valid backup.
 
-## 15. Current state after first setup
+## 16. Current state
 
-Expected repository state after the first-setup workflow succeeds:
+Expected repository state after Phase 1 files are uploaded:
 
-- Android project scaffold builds a debug APK.
-- HOMIQ launches to a minimal foundation screen.
-- English and Malay string resources exist.
+- Android project remains on compileSdk 36.
+- HOMIQ opens into the five-tab product shell.
+- Home shows zero-state business summary cards.
+- Calendar renders the current month before database integration.
+- Bookings, Money and More have polished zero-state shells.
+- Global quick-add UI exists but is intentionally not wired to persistence yet.
+- English and Bahasa Melayu can be changed at runtime.
+- Light and dark HOMIQ themes are present.
 - No business database is implemented yet.
 - No account, Drive, or cloud sync code is implemented yet.
-- `PROJECT_CONTEXT.md` and `docs/FLOWCHART.md` define the project direction.
-- The next development task is Phase 1: Product shell.
+- Next development task after a green build is Phase 2: Local data foundation.
 
-## 16. Change log
+## 17. Change log
 
-### 31 August 2026
+### 31 August 2026, Phase 1
+
+- Established HOMIQ deep-green and soft-mint visual system.
+- Added full five-tab product shell.
+- Added Home zero-state dashboard.
+- Added current-month Calendar shell.
+- Added Bookings and Money zero states.
+- Added More settings shell.
+- Added global quick-add bottom sheet.
+- Added English and Bahasa Melayu runtime language switching.
+- Added AppCompat locale storage compatibility.
+- Added light and dark theme foundations.
+
+### 31 August 2026, Phase 0
 
 - HOMIQ name locked.
 - Owner-only manual homestay management concept locked.

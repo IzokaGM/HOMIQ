@@ -4,4 +4,83 @@
     <string name="foundation_title">HOMIQ</string>
     <string name="foundation_subtitle">Homestay management, simplified.</string>
     <string name="foundation_status">Project foundation ready</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_bookings">Bookings</string>
+    <string name="nav_money">Money</string>
+    <string name="nav_more">More</string>
+
+    <string name="home_eyebrow">HOMIQ OVERVIEW</string>
+    <string name="home_title">Your homestay, at a glance</string>
+    <string name="home_subtitle">Everything important for this month in one place.</string>
+    <string name="this_month">This month</string>
+    <string name="revenue">Revenue</string>
+    <string name="expenses">Expenses</string>
+    <string name="net_income">Net income</string>
+    <string name="occupancy">Occupancy</string>
+    <string name="currency_zero">RM0.00</string>
+    <string name="percent_zero" formatted="false">0%</string>
+    <string name="today">Today</string>
+    <string name="today_empty_title">Nothing scheduled today</string>
+    <string name="today_empty_body">Check-ins and check-outs will appear here.</string>
+    <string name="upcoming_bookings">Upcoming bookings</string>
+    <string name="upcoming_empty_title">No upcoming bookings</string>
+    <string name="upcoming_empty_body">Tap + when you receive your first booking.</string>
+
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_subtitle">See availability across your properties.</string>
+    <string name="all_properties">All properties</string>
+    <string name="calendar_empty_note">Bookings and blocked dates will be layered onto this calendar in the next phases.</string>
+    <string-array name="weekdays_short">
+        <item>Sun</item>
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+    </string-array>
+
+    <string name="bookings_title">Bookings</string>
+    <string name="bookings_subtitle">All manually recorded stays in one list.</string>
+    <string name="filter_all">All</string>
+    <string name="filter_upcoming">Upcoming</string>
+    <string name="filter_completed">Completed</string>
+    <string name="filter_cancelled">Cancelled</string>
+    <string name="bookings_empty_title">No bookings yet</string>
+    <string name="bookings_empty_body">Bookings received from WhatsApp, Airbnb or anywhere else will be recorded here.</string>
+
+    <string name="money_title">Money</string>
+    <string name="money_subtitle">Track what comes in, what goes out and what remains.</string>
+    <string name="financial_overview">Financial overview</string>
+    <string name="reports">Reports</string>
+    <string name="reports_body">Monthly and yearly performance will appear here once transaction data exists.</string>
+    <string name="deposit_notice_title">Deposits stay separate</string>
+    <string name="deposit_notice_body">Security deposits will not be counted as revenue, so your profit stays accurate.</string>
+
+    <string name="more_title">More</string>
+    <string name="more_subtitle">Properties, backup, security and app preferences.</string>
+    <string name="account">Account</string>
+    <string name="local_only">Local only</string>
+    <string name="not_signed_in">Not signed in. Your data remains on this phone.</string>
+    <string name="properties">Properties</string>
+    <string name="properties_body">Add and manage your homestays.</string>
+    <string name="backup_restore">Backup &amp; restore</string>
+    <string name="backup_restore_body">Local and Google Drive backup will be added later.</string>
+    <string name="security">Security</string>
+    <string name="security_body">App lock with device security is planned.</string>
+    <string name="language">Language</string>
+    <string name="language_body">Choose the language used by HOMIQ.</string>
+    <string name="language_english">English</string>
+    <string name="language_malay">Bahasa Melayu</string>
+
+    <string name="quick_add">Quick add</string>
+    <string name="new_booking">New booking</string>
+    <string name="record_payment">Record payment</string>
+    <string name="add_expense">Add expense</string>
+    <string name="block_date">Block date</string>
+    <string name="feature_next_phase">This action will be connected to real data in the next development phase.</string>
+
+    <string name="phase_one_badge">PRODUCT SHELL</string>
 </resources>

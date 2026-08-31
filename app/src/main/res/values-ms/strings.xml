@@ -4,4 +4,83 @@
     <string name="foundation_title">HOMIQ</string>
     <string name="foundation_subtitle">Urus homestay dengan mudah.</string>
     <string name="foundation_status">Asas projek telah siap</string>
+
+    <string name="nav_home">Utama</string>
+    <string name="nav_calendar">Kalendar</string>
+    <string name="nav_bookings">Tempahan</string>
+    <string name="nav_money">Kewangan</string>
+    <string name="nav_more">Lagi</string>
+
+    <string name="home_eyebrow">RINGKASAN HOMIQ</string>
+    <string name="home_title">Homestay anda, sepintas lalu</string>
+    <string name="home_subtitle">Semua perkara penting untuk bulan ini di satu tempat.</string>
+    <string name="this_month">Bulan ini</string>
+    <string name="revenue">Hasil</string>
+    <string name="expenses">Perbelanjaan</string>
+    <string name="net_income">Pendapatan bersih</string>
+    <string name="occupancy">Penghunian</string>
+    <string name="currency_zero">RM0.00</string>
+    <string name="percent_zero" formatted="false">0%</string>
+    <string name="today">Hari ini</string>
+    <string name="today_empty_title">Tiada jadual hari ini</string>
+    <string name="today_empty_body">Daftar masuk dan daftar keluar akan dipaparkan di sini.</string>
+    <string name="upcoming_bookings">Tempahan akan datang</string>
+    <string name="upcoming_empty_title">Tiada tempahan akan datang</string>
+    <string name="upcoming_empty_body">Tekan + apabila anda menerima tempahan pertama.</string>
+
+    <string name="calendar_title">Kalendar</string>
+    <string name="calendar_subtitle">Lihat kekosongan untuk semua homestay anda.</string>
+    <string name="all_properties">Semua homestay</string>
+    <string name="calendar_empty_note">Tempahan dan tarikh yang disekat akan dipaparkan pada kalendar ini dalam fasa seterusnya.</string>
+    <string-array name="weekdays_short">
+        <item>Ahd</item>
+        <item>Isn</item>
+        <item>Sel</item>
+        <item>Rab</item>
+        <item>Kha</item>
+        <item>Jum</item>
+        <item>Sab</item>
+    </string-array>
+
+    <string name="bookings_title">Tempahan</string>
+    <string name="bookings_subtitle">Semua penginapan yang direkod secara manual dalam satu senarai.</string>
+    <string name="filter_all">Semua</string>
+    <string name="filter_upcoming">Akan datang</string>
+    <string name="filter_completed">Selesai</string>
+    <string name="filter_cancelled">Dibatalkan</string>
+    <string name="bookings_empty_title">Belum ada tempahan</string>
+    <string name="bookings_empty_body">Tempahan daripada WhatsApp, Airbnb atau mana-mana sumber akan direkodkan di sini.</string>
+
+    <string name="money_title">Kewangan</string>
+    <string name="money_subtitle">Jejak wang masuk, wang keluar dan baki keuntungan.</string>
+    <string name="financial_overview">Ringkasan kewangan</string>
+    <string name="reports">Laporan</string>
+    <string name="reports_body">Prestasi bulanan dan tahunan akan dipaparkan selepas data transaksi tersedia.</string>
+    <string name="deposit_notice_title">Deposit diasingkan</string>
+    <string name="deposit_notice_body">Deposit keselamatan tidak akan dikira sebagai hasil supaya keuntungan kekal tepat.</string>
+
+    <string name="more_title">Lagi</string>
+    <string name="more_subtitle">Homestay, sandaran, keselamatan dan tetapan aplikasi.</string>
+    <string name="account">Akaun</string>
+    <string name="local_only">Lokal sahaja</string>
+    <string name="not_signed_in">Belum log masuk. Data anda kekal di telefon ini.</string>
+    <string name="properties">Homestay</string>
+    <string name="properties_body">Tambah dan urus homestay anda.</string>
+    <string name="backup_restore">Sandaran &amp; pemulihan</string>
+    <string name="backup_restore_body">Sandaran lokal dan Google Drive akan ditambah kemudian.</string>
+    <string name="security">Keselamatan</string>
+    <string name="security_body">Kunci aplikasi menggunakan keselamatan peranti dirancang.</string>
+    <string name="language">Bahasa</string>
+    <string name="language_body">Pilih bahasa yang digunakan oleh HOMIQ.</string>
+    <string name="language_english">English</string>
+    <string name="language_malay">Bahasa Melayu</string>
+
+    <string name="quick_add">Tambah pantas</string>
+    <string name="new_booking">Tempahan baru</string>
+    <string name="record_payment">Rekod bayaran</string>
+    <string name="add_expense">Tambah perbelanjaan</string>
+    <string name="block_date">Sekat tarikh</string>
+    <string name="feature_next_phase">Tindakan ini akan disambungkan kepada data sebenar dalam fasa pembangunan seterusnya.</string>
+
+    <string name="phase_one_badge">ASAS PRODUK</string>
 </resources>
