@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HOMIQ</string>
+    <string name="foundation_title">HOMIQ</string>
+    <string name="foundation_subtitle">Homestay management, simplified.</string>
+    <string name="foundation_status">Project foundation ready</string>
+</resources>
