@@ -1,0 +1,249 @@
+name: Apply HOMIQ Phase Package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: homiq-phase-installer
+  cancel-in-progress: false
+
+jobs:
+  apply-phase:
+    name: Apply latest HOMIQ phase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find latest phase ZIP
+        id: phase
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t zips < <(
+            find . -maxdepth 1 -type f -name 'HOMIQ-Phase-*.zip' -printf '%f\n' \
+              | sort -V
+          )
+
+          if (( ${#zips[@]} == 0 )); then
+            echo "No HOMIQ-Phase-*.zip found in repository root."
+            exit 1
+          fi
+
+          ZIP_FILE="${zips[-1]}"
+          PHASE_NAME="${ZIP_FILE%.zip}"
+
+          echo "zip_file=$ZIP_FILE" >> "$GITHUB_OUTPUT"
+          echo "phase_name=$PHASE_NAME" >> "$GITHUB_OUTPUT"
+
+          echo "Using package: $ZIP_FILE"
+
+      - name: Validate phase package
+        shell: bash
+        env:
+          ZIP_FILE: ${{ steps.phase.outputs.zip_file }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          import sys
+          import zipfile
+          from pathlib import PurePosixPath
+
+          zip_name = os.environ["ZIP_FILE"]
+
+          with zipfile.ZipFile(zip_name) as archive:
+              names = archive.namelist()
+
+              if not names:
+                  raise SystemExit("Phase ZIP is empty.")
+
+              for info in archive.infolist():
+                  raw_name = info.filename
+                  normalized = raw_name.replace("\\", "/")
+                  path = PurePosixPath(normalized)
+
+                  unix_mode = (info.external_attr >> 16) & 0o170000
+                  if unix_mode == 0o120000:
+                      raise SystemExit(
+                          f"Symlinks are not allowed in phase ZIP: {raw_name}"
+                      )
+
+                  if path.is_absolute():
+                      raise SystemExit(
+                          f"Unsafe absolute path in ZIP: {raw_name}"
+                      )
+
+                  if ".." in path.parts:
+                      raise SystemExit(
+                          f"Unsafe parent traversal in ZIP: {raw_name}"
+                      )
+
+                  if path.parts and path.parts[0] in {
+                      ".git",
+                      ".github",
+                  }:
+                      raise SystemExit(
+                          f"Phase ZIP is not allowed to modify {path.parts[0]}: {raw_name}"
+                      )
+
+              required_candidates = {
+                  "PROJECT_CONTEXT.md",
+                  "app/build.gradle.kts",
+                  "app/src/main/AndroidManifest.xml",
+              }
+
+              present = set(names)
+              if not any(item in present for item in required_candidates):
+                  raise SystemExit(
+                      "ZIP does not look like a HOMIQ phase package."
+                  )
+
+          print("Phase package validation passed.")
+          PY
+
+      - name: Extract phase package
+        shell: bash
+        env:
+          ZIP_FILE: ${{ steps.phase.outputs.zip_file }}
+        run: |
+          set -euo pipefail
+
+          rm -rf .homiq-phase-tmp
+          mkdir -p .homiq-phase-tmp
+
+          unzip -q "$ZIP_FILE" -d .homiq-phase-tmp
+
+          # Documentation for manual upload only. It is not part of app source.
+          rm -f .homiq-phase-tmp/UPLOAD_PATHS.txt
+
+          cp -a .homiq-phase-tmp/. .
+          rm -rf .homiq-phase-tmp
+
+          echo "Phase files applied to repository working tree."
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Ensure Android SDK 36
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify project files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f gradlew
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
+          test -f PROJECT_CONTEXT.md
+
+          chmod +x gradlew
+
+      - name: Build HOMIQ
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon clean assembleDebug
+
+      - name: Mark phase build checkpoint complete
+        shell: bash
+        env:
+          PHASE_NAME: ${{ steps.phase.outputs.phase_name }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          phase_name = os.environ["PHASE_NAME"]
+          match = re.fullmatch(r"HOMIQ-Phase-(\d+)", phase_name)
+
+          if not match:
+              print("Could not derive numeric phase. Context left unchanged.")
+              raise SystemExit(0)
+
+          phase = match.group(1)
+          path = Path("PROJECT_CONTEXT.md")
+          text = path.read_text(encoding="utf-8")
+
+          pattern = re.compile(
+              rf"- \[ \] Confirm Phase {re.escape(phase)} files build successfully"
+              rf"(?: after repository upload)?"
+          )
+
+          updated, count = pattern.subn(
+              lambda m: m.group(0).replace("- [ ]", "- [x]", 1),
+              text,
+              count=1,
+          )
+
+          if count:
+              path.write_text(updated, encoding="utf-8")
+              print(f"Marked Phase {phase} build checkpoint complete.")
+          else:
+              print(
+                  f"No Phase {phase} build checkpoint found. "
+                  "Context left unchanged."
+              )
+          PY
+
+      - name: Remove applied phase ZIP
+        shell: bash
+        env:
+          ZIP_FILE: ${{ steps.phase.outputs.zip_file }}
+        run: |
+          set -euo pipefail
+          rm -f "$ZIP_FILE"
+
+      - name: Commit applied phase
+        shell: bash
+        env:
+          PHASE_NAME: ${{ steps.phase.outputs.phase_name }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "feat: apply ${PHASE_NAME}"
+          git push
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HOMIQ-debug-${{ steps.phase.outputs.phase_name }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
