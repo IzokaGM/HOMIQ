@@ -276,7 +276,7 @@ Local data remains usable when:
 - Google Drive is unavailable.
 - User chooses not to create an account.
 
-Planned local database: Room or the current recommended Android local persistence layer after compatibility verification at implementation time.
+Local database: Room 2.8.4 over SQLite. Database version 1 uses exported schemas and explicit migrations. See `docs/DATA_MODEL.md`.
 
 Do not make cloud storage the only source for bookings.
 
@@ -437,21 +437,29 @@ Preferred Android pattern:
 - [x] Global quick-add sheet
 - [x] Runtime language selection
 - [x] Dark mode theme foundation
-- [x] Confirm Phase 1 files build successfully after repository upload
+- [ ] Confirm Phase 1 files build successfully after repository upload
 
 Phase 1 completion is considered final only after the uploaded files build successfully in the repository. If a compile correction is required, keep Phase 2 blocked until Phase 1 is green.
 
 ### Phase 2: Local data foundation
 
-- [ ] Select and add local database
-- [ ] Define entities and migrations
-- [ ] Property repository
-- [ ] Booking repository
-- [ ] Payment repository
-- [ ] Deposit repository or deposit model
-- [ ] Expense repository
-- [ ] Blocked dates
-- [ ] Local data tests
+- [x] Select Room 2.8.4 as local database
+- [x] Define database version 1 and explicit migration policy
+- [x] Define Property entity
+- [x] Define Booking entity
+- [x] Define Payment entity
+- [x] Define Deposit entity
+- [x] Define Expense entity
+- [x] Define Blocked Date entity
+- [x] Property repository
+- [x] Booking repository
+- [x] Payment repository
+- [x] Deposit repository
+- [x] Expense repository
+- [x] Blocked Date repository
+- [x] Add overlap-query foundation for booking and blocked dates
+- [x] Add local database instrumented test
+- [x] Confirm Phase 2 files build successfully after repository upload
 
 ### Phase 3: Properties and bookings
 
@@ -583,11 +591,32 @@ Expected repository state after Phase 1 files are uploaded:
 - Global quick-add UI exists but is intentionally not wired to persistence yet.
 - English and Bahasa Melayu can be changed at runtime.
 - Light and dark HOMIQ themes are present.
-- No business database is implemented yet.
+- Room local database version 1 is implemented.
+- Property, Booking, Payment, Deposit, Expense and Blocked Date tables are defined.
+- Repository boundaries are implemented for all Phase 2 business tables.
+- Money is stored as integer sen to avoid floating-point rounding.
+- Booking and blocked-date ranges use check-out/end-exclusive overlap rules.
+- Stable UUID, revision, timestamps and soft-delete metadata are present for future sync.
+- Explicit migration policy is established and destructive migration is disabled.
+- Local Room instrumented coverage exists for overlap and payment-total behaviour.
 - No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green build is Phase 2: Local data foundation.
+- Next development task after a green Phase 2 build is Phase 3: Properties and Bookings.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 2
+
+- Selected Room 2.8.4 for the Android local database.
+- Added KSP 2.3.10 for Room code generation and the Room Gradle plugin for reproducible schema export.
+- Added database version 1 with exported schemas.
+- Added six core persistent entities.
+- Added Room DAOs and repository boundaries.
+- Stored monetary values in integer sen.
+- Added stable UUID, revision, timestamps and tombstones for future sync.
+- Added overlap queries using half-open stay/date ranges.
+- Added explicit non-destructive migration policy.
+- Added instrumented database coverage for overlap and payment totals.
+- Added `docs/DATA_MODEL.md` as the local-data reference.
 
 ### 31 August 2026, Phase 1
 
