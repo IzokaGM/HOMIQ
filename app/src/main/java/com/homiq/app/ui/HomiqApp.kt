@@ -36,6 +36,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +52,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.homiq.app.BuildConfig
 import com.homiq.app.HomiqApplication
 import com.homiq.app.R
 import com.homiq.app.data.preferences.OnboardingPreferences
+import com.homiq.app.ui.components.HomikaUpdateDialog
 import com.homiq.app.ui.screens.AppLockScreen
 import com.homiq.app.ui.screens.BackupScreen
 import com.homiq.app.ui.screens.BlockDateFormScreen
@@ -139,6 +142,8 @@ fun HomiqApp() {
     val backupViewModel: BackupViewModel = viewModel(factory = factory)
     val syncViewModel: SyncViewModel = viewModel(factory = factory)
     val syncUiState by syncViewModel.state.collectAsStateWithLifecycle()
+    val updateManager = remember(application) { application.container.updateManager }
+    val updateState by updateManager.state.collectAsStateWithLifecycle()
 
     val onboardingPreferences = remember(application) { OnboardingPreferences(application) }
     var onboardingComplete by rememberSaveable { mutableStateOf(onboardingPreferences.isComplete) }
@@ -163,6 +168,12 @@ fun HomiqApp() {
             },
         )
         return
+    }
+
+    LaunchedEffect(onboardingComplete) {
+        if (onboardingComplete) {
+            updateManager.checkForUpdates(manual = false)
+        }
     }
 
     val selectedDestination = remember(destinationName) {
@@ -263,6 +274,7 @@ fun HomiqApp() {
                     onSyncClick = { navigate(HomiqRoute.SYNC) },
                     appLockEnabled = appLockState.hasPin,
                     onSecurityClick = { navigate(HomiqRoute.SECURITY) },
+                    onCheckUpdates = { updateManager.checkForUpdates(manual = true) },
                     modifier = Modifier.padding(innerPadding),
                 )
             }
@@ -391,6 +403,20 @@ fun HomiqApp() {
             }
         }
     }
+
+    HomikaUpdateDialog(
+        state = updateState,
+        currentVersion = BuildConfig.VERSION_NAME,
+        onDismiss = updateManager::dismiss,
+        onDownload = {
+            val available = updateState as? com.homiq.app.data.update.UpdateState.Available
+            if (available != null) {
+                updateManager.download(available.release)
+            }
+        },
+        onInstall = updateManager::install,
+        onOpenInstallSettings = updateManager::openInstallPermissionSettings,
+    )
 }
 
 @Composable

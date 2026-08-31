@@ -462,4 +462,34 @@
     <string name="more_compact_subtitle">Settings, data and security</string>
     <string name="about_version_compact">v%1$s</string>
 
+
+    <string name="updater_more_label">Homika · v%1$s</string>
+    <string name="updater_check_short">Check update</string>
+    <string name="updater_checking_title">Checking for updates</string>
+    <string name="updater_checking_body">Looking for the latest Homika release on GitHub.</string>
+    <string name="updater_available_title">Update available</string>
+    <string name="updater_available_body">Current v%1$s · Latest v%2$s</string>
+    <string name="updater_download">Download update</string>
+    <string name="updater_later">Later</string>
+    <string name="updater_downloading_title">Downloading Homika</string>
+    <string name="updater_download_preparing">Preparing the secure download…</string>
+    <string name="updater_progress">%1$d%% downloaded</string>
+    <string name="updater_ready_title">Ready to install</string>
+    <string name="updater_ready_body">Homika v%1$s was downloaded and verified. Android will ask you to confirm the update.</string>
+    <string name="updater_install">Install update</string>
+    <string name="updater_permission_title">Allow Homika to install updates</string>
+    <string name="updater_permission_body">Android requires permission for Homika to install APK updates. Open settings, allow installs from this source, then return to Homika.</string>
+    <string name="updater_open_settings">Open settings</string>
+    <string name="updater_installing_title">Opening installer</string>
+    <string name="updater_installing_body">The APK has been verified. Continue in the Android installer to update Homika.</string>
+    <string name="updater_current_title">Homika is up to date</string>
+    <string name="updater_current_body">You are already using the latest version, v%1$s.</string>
+    <string name="updater_error_title">Update could not continue</string>
+    <string name="updater_error_network">Homika could not reach GitHub. Check your internet connection and try again.</string>
+    <string name="updater_error_release">The latest GitHub release does not contain a valid Homika APK.</string>
+    <string name="updater_error_download">The update download did not complete correctly. Try again later.</string>
+    <string name="updater_error_apk">The downloaded APK is not a newer valid Homika build.</string>
+    <string name="updater_error_signature">The downloaded APK is signed with a different certificate, so Homika blocked the update for safety.</string>
+    <string name="updater_error_install">Android could not start or complete the Homika installer.</string>
+
 </resources>

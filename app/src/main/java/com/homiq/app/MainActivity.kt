@@ -28,6 +28,9 @@ class MainActivity : AppCompatActivity() {
         homiqApplication.container
             .appLockService
             .onAppForeground()
+        homiqApplication.container
+            .updateManager
+            .onAppForeground()
         if (!homiqApplication.container.appLockService.state.value.locked) {
             homiqApplication.container
                 .syncService

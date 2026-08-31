@@ -10,6 +10,7 @@ import com.homiq.app.data.sync.HomiqSyncEngine
 import com.homiq.app.data.sync.HomiqSyncService
 import com.homiq.app.data.sync.SyncChangeSignal
 import com.homiq.app.data.sync.SyncPreferences
+import com.homiq.app.data.update.HomikaUpdateManager
 import com.homiq.app.data.local.HomiqDatabase
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
@@ -94,6 +95,11 @@ class HomiqAppContainer(
             context = context,
             database = database,
         )
+    }
+
+
+    val updateManager: HomikaUpdateManager by lazy {
+        HomikaUpdateManager(context)
     }
 
     val syncService: HomiqSyncService by lazy {

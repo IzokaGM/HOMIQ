@@ -944,3 +944,19 @@ Expected repository state after Phase 11 files are uploaded:
 - Added persisted System | Light | Dark appearance selector.
 - Removed the global quick-add FAB on More only.
 - No database migration and no business/backend data logic changes.
+
+## 1 September 2026 — Homika Private APK Updater
+
+- Added zero-cost GitHub Releases updater for private/Telegram APK distribution.
+- Update source is `IzokaGM/HOMIQ` GitHub Releases; no Play Store dependency and no Homika update server.
+- Added silent automatic release check after onboarding, throttled to once every six hours.
+- Added manual compact `Check update` access from the existing More version row without making More materially taller.
+- Updater reads release version, release notes and a release APK asset.
+- Download progress, Later, up-to-date, permission and failure states are bilingual English/Bahasa Melayu.
+- Downloaded APK is verified before install: package must remain `com.homiq.app`, versionCode must be newer, and signing certificate must match the installed Homika build.
+- Installation uses Android `PackageInstaller` with explicit user confirmation, not a silent installer.
+- Android 8+ `Install unknown apps` special access is handled via the system settings screen when required.
+- No GitHub token or reusable credential is embedded in the app.
+- Stable signing is mandatory for seamless future updates. The first transition from development/debug signing to the final private release key may require backup -> uninstall debug -> install first release -> restore; subsequent releases must retain that same release certificate.
+- Added `docs/UPDATER.md` with release/version/signing procedure.
+- No database migration and no new external dependency.

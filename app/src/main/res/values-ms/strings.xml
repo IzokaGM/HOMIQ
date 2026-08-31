@@ -462,4 +462,34 @@
     <string name="more_compact_subtitle">Tetapan, data dan keselamatan</string>
     <string name="about_version_compact">v%1$s</string>
 
+
+    <string name="updater_more_label">Homika · v%1$s</string>
+    <string name="updater_check_short">Semak update</string>
+    <string name="updater_checking_title">Menyemak kemas kini</string>
+    <string name="updater_checking_body">Mencari keluaran Homika terkini di GitHub.</string>
+    <string name="updater_available_title">Kemas kini tersedia</string>
+    <string name="updater_available_body">Semasa v%1$s · Terkini v%2$s</string>
+    <string name="updater_download">Muat turun</string>
+    <string name="updater_later">Kemudian</string>
+    <string name="updater_downloading_title">Memuat turun Homika</string>
+    <string name="updater_download_preparing">Menyediakan muat turun selamat…</string>
+    <string name="updater_progress">%1$d%% dimuat turun</string>
+    <string name="updater_ready_title">Sedia untuk dipasang</string>
+    <string name="updater_ready_body">Homika v%1$s telah dimuat turun dan disahkan. Android akan meminta pengesahan untuk memasang kemas kini.</string>
+    <string name="updater_install">Pasang kemas kini</string>
+    <string name="updater_permission_title">Benarkan Homika memasang kemas kini</string>
+    <string name="updater_permission_body">Android memerlukan kebenaran untuk Homika memasang kemas kini APK. Buka tetapan, benarkan pemasangan daripada sumber ini, kemudian kembali ke Homika.</string>
+    <string name="updater_open_settings">Buka tetapan</string>
+    <string name="updater_installing_title">Membuka pemasang</string>
+    <string name="updater_installing_body">APK telah disahkan. Teruskan di pemasang Android untuk mengemas kini Homika.</string>
+    <string name="updater_current_title">Homika sudah terkini</string>
+    <string name="updater_current_body">Anda sudah menggunakan versi terkini, v%1$s.</string>
+    <string name="updater_error_title">Kemas kini tidak dapat diteruskan</string>
+    <string name="updater_error_network">Homika tidak dapat menghubungi GitHub. Semak sambungan internet dan cuba lagi.</string>
+    <string name="updater_error_release">Keluaran GitHub terkini tidak mempunyai APK Homika yang sah.</string>
+    <string name="updater_error_download">Muat turun kemas kini tidak selesai dengan betul. Cuba lagi kemudian.</string>
+    <string name="updater_error_apk">APK yang dimuat turun bukan binaan Homika yang sah dan lebih baharu.</string>
+    <string name="updater_error_signature">APK yang dimuat turun menggunakan sijil tandatangan yang berbeza, jadi Homika menyekat kemas kini demi keselamatan.</string>
+    <string name="updater_error_install">Android tidak dapat memulakan atau melengkapkan pemasang Homika.</string>
+
 </resources>
