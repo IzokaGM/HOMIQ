@@ -450,4 +450,16 @@
     <string name="onboarding_pin_error_compact">Masukkan 4–8 digit yang sepadan.</string>
     <string name="onboarding_local_first_note">Local-first secara lalai. Data kekal pada telefon ini kecuali sync Google Drive disambungkan.</string>
 
+
+    <string name="settings_account">Akaun</string>
+    <string name="account_connected_supporting">Sync Google Drive disambungkan</string>
+    <string name="account_local_supporting">Lokal sahaja · Google pilihan</string>
+    <string name="properties_compact_supporting">Urus homestay</string>
+    <string name="appearance">Paparan</string>
+    <string name="theme_system_short">Sistem</string>
+    <string name="theme_light_short">Cerah</string>
+    <string name="theme_dark_short">Gelap</string>
+    <string name="more_compact_subtitle">Tetapan, data dan keselamatan</string>
+    <string name="about_version_compact">v%1$s</string>
+
 </resources>

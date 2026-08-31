@@ -219,13 +219,15 @@ fun HomiqApp() {
                 )
             },
             floatingActionButton = {
-                SmallFloatingActionButton(
-                    onClick = { showQuickAdd = true },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = MaterialTheme.shapes.large,
-                ) {
-                    Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.quick_add))
+                if (selectedDestination != HomiqDestination.More) {
+                    SmallFloatingActionButton(
+                        onClick = { showQuickAdd = true },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.quick_add))
+                    }
                 }
             },
         ) { innerPadding ->

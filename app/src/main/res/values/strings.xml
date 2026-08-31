@@ -450,4 +450,16 @@
     <string name="onboarding_pin_error_compact">Enter 4–8 matching digits.</string>
     <string name="onboarding_local_first_note">Local-first by default. Data stays on this phone unless Google Drive sync is connected.</string>
 
+
+    <string name="settings_account">Account</string>
+    <string name="account_connected_supporting">Google Drive sync connected</string>
+    <string name="account_local_supporting">Local only · Google optional</string>
+    <string name="properties_compact_supporting">Manage homestays</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system_short">System</string>
+    <string name="theme_light_short">Light</string>
+    <string name="theme_dark_short">Dark</string>
+    <string name="more_compact_subtitle">Settings, data and security</string>
+    <string name="about_version_compact">v%1$s</string>
+
 </resources>

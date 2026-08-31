@@ -935,3 +935,12 @@ Expected repository state after Phase 11 files are uploaded:
 - Calendar Today control made compact and selects the actual current day.
 - Main screen bottom content padding normalized for the global FAB.
 - Room schema, booking/payment logic, backup, Google Drive sync protocol, package id `com.homiq.app`, and OAuth compatibility remain unchanged.
+
+## Homika UI/UX Fix 3
+- Rebuilt More as a compact settings dashboard with one-screen target and scroll fallback.
+- Fixed the More overlap root cause: multiple settings must be placed in a Column inside Surface rather than Surface's default Box stacking.
+- Restored Account, Properties, Google Drive Sync, Backup & Restore, Security, Language, Appearance and About/version access.
+- Language is now a compact MY | EN selector.
+- Added persisted System | Light | Dark appearance selector.
+- Removed the global quick-add FAB on More only.
+- No database migration and no business/backend data logic changes.
