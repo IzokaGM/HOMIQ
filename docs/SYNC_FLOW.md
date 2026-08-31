@@ -1,4 +1,4 @@
-# HOMIQ Phase 9 Sync Flow
+# HOMIQU Phase 9 Sync Flow
 
 ## Principle
 
@@ -30,7 +30,7 @@ A device updates only its own Drive file.
 Local Room snapshot
         |
         v
-List all HOMIQ device files
+List all HOMIQU device files
         |
         v
 Download valid remote snapshots
@@ -83,7 +83,7 @@ When Drive is unavailable:
 
 ## No server
 
-Phase 9 uses no HOMIQ backend.
+Phase 9 uses no HOMIQU backend.
 
 There is no push webhook.
 

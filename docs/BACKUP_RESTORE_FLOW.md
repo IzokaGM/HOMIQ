@@ -1,14 +1,14 @@
-# HOMIQ Backup and Restore
+# HOMIQU Backup and Restore
 
 Phase 8 implements portable, local-first backup and restore.
 
 ## Backup format
 
-HOMIQ exports a versioned JSON document.
+HOMIQU exports a versioned JSON document.
 
 Default file name:
 
-`HOMIQ-backup-YYYY-MM-DD-HHmm.homiq.json`
+`HOMIQU-backup-YYYY-MM-DD-HHmm.homiq.json`
 
 The backup contains:
 
@@ -28,7 +28,7 @@ This is important for later sync readiness.
 
 ## Why JSON instead of copying SQLite
 
-HOMIQ deliberately does not copy the raw SQLite database file.
+HOMIQU deliberately does not copy the raw SQLite database file.
 
 A logical backup is safer because:
 
@@ -59,7 +59,7 @@ No broad storage permission is requested.
 
 For Google Drive, the owner selects Drive and the intended Google account in the Android picker.
 
-HOMIQ never receives the Google password.
+HOMIQU never receives the Google password.
 
 ## Snapshot consistency
 
@@ -71,10 +71,10 @@ Deleted/tombstone rows are included because they are part of future sync state.
 
 ## Restore validation
 
-Before the confirmation dialog appears, HOMIQ:
+Before the confirmation dialog appears, HOMIQU:
 
 1. Opens the selected document.
-2. Verifies the HOMIQ backup marker.
+2. Verifies the HOMIQU backup marker.
 3. Verifies backup format compatibility.
 4. Verifies database schema compatibility.
 5. Parses every entity.
@@ -105,7 +105,7 @@ The previous database therefore remains intact instead of becoming partially res
 
 ## Backup history
 
-HOMIQ stores local timestamps for:
+HOMIQU stores local timestamps for:
 
 - Last successful backup
 - Last successful restore
@@ -114,15 +114,15 @@ These timestamps are convenience metadata only and are not required to recover d
 
 ## Google Drive and zero recurring cost
 
-Phase 8 uses Android's system document picker rather than a HOMIQ cloud server.
+Phase 8 uses Android's system document picker rather than a HOMIQU cloud server.
 
 When Google Drive is installed and available as a DocumentsProvider, a user can save the backup into their selected Drive account.
 
 This keeps the owner in control and avoids:
 
-- A HOMIQ-hosted backend
+- A HOMIQU-hosted backend
 - Server subscription costs
-- Drive passwords inside HOMIQ
+- Drive passwords inside HOMIQU
 - OAuth client configuration for manual backup/restore
 
 ## Phase boundary

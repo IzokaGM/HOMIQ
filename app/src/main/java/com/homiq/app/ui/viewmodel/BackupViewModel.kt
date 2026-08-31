@@ -63,7 +63,7 @@ class BackupViewModel(
                     "yyyy-MM-dd-HHmm",
                 ),
             )
-        return "HOMIQ-backup-$stamp.homiq.json"
+        return "HOMIQU-backup-$stamp.homiqu.json"
     }
 
     fun createBackup(

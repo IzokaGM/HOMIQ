@@ -1,8 +1,8 @@
-# HOMIQ Phase 10 Security
+# HOMIQU Phase 10 Security
 
 ## App lock
 
-HOMIQ can be protected with a local numeric PIN.
+HOMIQU can be protected with a local numeric PIN.
 
 - PIN length: 4 to 8 digits.
 - The plain PIN is never stored.
@@ -15,7 +15,7 @@ HOMIQ can be protected with a local numeric PIN.
 
 Biometric unlock is optional and becomes available only after a PIN exists.
 
-HOMIQ uses AndroidX Biometric and the device biometric enrollment. HOMIQ does not store fingerprint or face data.
+HOMIQU uses AndroidX Biometric and the device biometric enrollment. HOMIQU does not store fingerprint or face data.
 
 ## Auto-lock
 
@@ -56,9 +56,9 @@ Android will reject an in-place update when the signing certificate changes.
 
 Before installing the first Phase 10 APK:
 
-1. Create a HOMIQ backup using Backup & Restore.
+1. Create a HOMIQU backup using Backup & Restore.
 2. Keep the backup somewhere safe.
-3. Uninstall the older HOMIQ app if Android reports a signature mismatch.
+3. Uninstall the older HOMIQU app if Android reports a signature mismatch.
 4. Install the Phase 10 APK.
 5. Restore the backup.
 

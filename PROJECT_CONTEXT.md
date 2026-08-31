@@ -1,12 +1,12 @@
-# HOMIQ Project Context
+# HOMIQU Project Context
 
-Last context reset: 31 August 2026
+Last context reset: 31 August 2026 · HOMIQU V1 release phase
 
-This file is the main source of truth for HOMIQ. Any AI, developer, or new ChatGPT account continuing this project must read this file and `docs/FLOWCHART.md` before proposing code changes.
+This file is the main source of truth for HOMIQU. Any AI, developer, or new ChatGPT account continuing this project must read this file and `docs/FLOWCHART.md` before proposing code changes.
 
 ## 1. Resume protocol
 
-When continuing HOMIQ in a new conversation or account:
+When continuing HOMIQU in a new conversation or account:
 
 1. Read this entire file.
 2. Read `docs/FLOWCHART.md`.
@@ -19,17 +19,17 @@ When continuing HOMIQ in a new conversation or account:
 
 Suggested resume prompt:
 
-`Read PROJECT_CONTEXT.md and docs/FLOWCHART.md, inspect the current repository, then continue HOMIQ from the first incomplete roadmap item without changing locked decisions.`
+`Read PROJECT_CONTEXT.md and docs/FLOWCHART.md, inspect the current repository, then continue HOMIQU from the first incomplete roadmap item without changing locked decisions.`
 
 ## 2. Product identity
 
-Name: HOMIQ
+Name: HOMIQU
 
 Type: Private homestay management app for the owner.
 
 Primary purpose: Record and manage bookings that have already been received manually from WhatsApp or any other source, then track operations and money in one place.
 
-HOMIQ is not:
+HOMIQU is not:
 
 - A public booking platform.
 - A marketplace for guests.
@@ -42,7 +42,7 @@ HOMIQ is not:
 
 These decisions are locked unless the owner explicitly changes them.
 
-- App name is HOMIQ.
+- App name is HOMIQU.
 - Android first.
 - Kotlin and Jetpack Compose.
 - Owner only.
@@ -151,7 +151,7 @@ Double booking prevention is required.
 
 ### Payments
 
-Payments are records only. HOMIQ does not process money.
+Payments are records only. HOMIQU does not process money.
 
 A booking can have multiple payment entries.
 
@@ -240,7 +240,7 @@ A dedicated first-launch language onboarding screen can be added later if it imp
 
 ## 7. Visual direction
 
-Phase 1 establishes the HOMIQ visual foundation.
+Phase 1 establishes the HOMIQU visual foundation.
 
 Direction:
 
@@ -259,7 +259,7 @@ The theme is implemented through `ui/theme`.
 
 ## 8. Local first architecture
 
-Daily HOMIQ usage must not depend on internet access.
+Daily HOMIQU usage must not depend on internet access.
 
 Target data flow:
 
@@ -333,7 +333,7 @@ Google Drive backup is a disaster recovery mechanism, not the live sync engine.
 
 Goal:
 
-Phone A and Phone B signed into the same HOMIQ account can eventually share current data.
+Phone A and Phone B signed into the same HOMIQU account can eventually share current data.
 
 Required behaviour:
 
@@ -367,7 +367,7 @@ Planned:
 - Backups must not expose data unnecessarily.
 - Cloud access should be scoped to the signed-in owner.
 
-The manifest disables Android automatic app backup because HOMIQ will implement explicit controlled backup and restore.
+The manifest disables Android automatic app backup because HOMIQU will implement explicit controlled backup and restore.
 
 ## 13. Architecture
 
@@ -413,7 +413,7 @@ Preferred Android pattern:
 
 ### Phase 0: Foundation
 
-- [x] Lock product name HOMIQ
+- [x] Lock product name HOMIQU
 - [x] Lock owner-only concept
 - [x] Lock bilingual requirement
 - [x] Lock local first direction
@@ -437,7 +437,7 @@ Preferred Android pattern:
 - [x] Global quick-add sheet
 - [x] Runtime language selection
 - [x] Dark mode theme foundation
-- [ ] Confirm Phase 1 files build successfully after repository upload
+- [x] Confirm Phase 1 files build successfully after repository upload
 
 Phase 1 completion is considered final only after the uploaded files build successfully in the repository. If a compile correction is required, keep Phase 2 blocked until Phase 1 is green.
 
@@ -459,7 +459,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Blocked Date repository
 - [x] Add overlap-query foundation for booking and blocked dates
 - [x] Add local database instrumented test
-- [ ] Confirm Phase 2 files build successfully after repository upload
+- [x] Confirm Phase 2 files build successfully after repository upload
 
 ### Phase 3: Properties and bookings
 
@@ -478,7 +478,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Cancel booking without deleting history
 - [x] Booking source tracking
 - [x] Unit tests for half-open date overlap rules
-- [ ] Confirm Phase 3 files build successfully after repository upload
+- [x] Confirm Phase 3 files build successfully after repository upload
 
 ### Phase 4: Calendar
 
@@ -498,7 +498,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Block Date collision validation against other blocked periods
 - [x] Global Block Date quick action connected
 - [x] Calendar date-range unit tests
-- [ ] Confirm Phase 4 files build successfully after repository upload
+- [x] Confirm Phase 4 files build successfully after repository upload
 
 ### Phase 5: Payments and deposits
 
@@ -519,7 +519,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Deposit remaining calculation
 - [x] Deposit remains separate from booking payment and revenue
 - [x] Payment and deposit unit tests
-- [ ] Confirm Phase 5 files build successfully after repository upload
+- [x] Confirm Phase 5 files build successfully after repository upload
 
 ### Phase 6: Expenses and money
 
@@ -539,7 +539,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Net income per property
 - [x] General expense separated from property profitability
 - [x] Expense and money calculation unit tests
-- [ ] Confirm Phase 6 files build successfully after repository upload
+- [x] Confirm Phase 6 files build successfully after repository upload
 
 ### Phase 7: Dashboard and reports
 
@@ -562,11 +562,11 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Booking source analytics
 - [x] Report sharing through Android share sheet
 - [x] Analytics formula unit tests
-- [ ] Confirm Phase 7 files build successfully after repository upload
+- [x] Confirm Phase 7 files build successfully after repository upload
 
 ### Phase 8: Backup and restore
 
-- [x] Versioned portable HOMIQ backup format
+- [x] Versioned portable HOMIQU backup format
 - [x] Backup all six Room business tables
 - [x] Preserve stable IDs, sync revisions and tombstones
 - [x] Consistent backup snapshot inside Room transaction
@@ -581,16 +581,16 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Last successful backup timestamp
 - [x] Last successful restore timestamp
 - [x] Backup codec round-trip unit test
-- [ ] Confirm Phase 8 files build successfully after repository upload
+- [x] Confirm Phase 8 files build successfully after repository upload
 
 ### Phase 9: Optional multi-device sync
 
-- [x] Google Drive selected as the HOMIQ sync layer
+- [x] Google Drive selected as the HOMIQU sync layer
 - [x] Narrow drive.appdata OAuth scope
 - [x] Google Identity AuthorizationClient integration
 - [x] Private Drive appDataFolder storage
 - [x] Stable per-installation device UUID
-- [x] One sync file per HOMIQ installation
+- [x] One sync file per HOMIQU installation
 - [x] Local Room remains primary and fully offline-capable
 - [x] Sync all six business tables
 - [x] Tombstone propagation
@@ -606,7 +606,7 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Sync status UI under More
 - [x] Google Cloud/OAuth setup documentation
 - [x] Sync merge unit tests
-- [ ] Confirm Phase 9 files build successfully after repository upload
+- [x] Confirm Phase 9 files build successfully after repository upload
 
 ### Phase 10: Security and polish
 
@@ -633,22 +633,29 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] PIN hashing/rule unit tests
 - [x] Confirm Phase 10 files build successfully after repository upload
 
-### Phase 11: Release
+### Phase 11: Final private release
 
-- [ ] Versioning
-- [ ] Release signing strategy
-- [ ] Release build
-- [ ] Fresh-install test
-- [ ] Upgrade test
-- [ ] Backup and restore test
-- [ ] APK distribution for owner use
-- [ ] Update repository context
+- [x] Rebrand user-facing HOMIQ identity to HOMIQU
+- [x] Keep application ID `com.homiq.app` for data/OAuth continuity
+- [x] Version V1 as 1.0.0 / versionCode 10000
+- [x] Add launcher icon and final app label
+- [x] Configure private release signing from environment secrets
+- [x] Keep release keystore outside repository
+- [x] Add private-release GitHub Actions workflow as a separate file
+- [x] Document release OAuth SHA-1 and second Android OAuth client
+- [x] Preserve old backup magic and sync identifiers for compatibility
+- [x] Add visible version/private-distribution information
+- [x] Update repository context and final release documentation
+- [x] Confirm Phase 11 files build successfully after repository upload
+- [ ] Generate signed HOMIQU 1.0.0 private-release APK
+- [ ] Fresh-install final APK on owner phone
+- [ ] Verify backup/Drive recovery after debug-to-release certificate transition
 
 ## 15. Definition of done for V1
 
 V1 is complete only when the owner can:
 
-1. Install HOMIQ.
+1. Install HOMIQU.
 2. Choose BM or English.
 3. Create at least one property.
 4. Enter a manual booking quickly.
@@ -667,27 +674,34 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 10 files are uploaded:
+Expected repository state after Phase 11 files are uploaded:
 
-- All Phase 1-9 workflows remain available.
-- Phase 9 Google Drive sync code remains local-first and optional.
-- Phase 10 adds a functional PIN app lock, biometric unlock and configurable auto-lock.
-- The plain PIN is not stored; HOMIQ stores a salted PBKDF2-HMAC-SHA256 hash.
-- A fresh process is locked before business screens are composed whenever a PIN exists.
-- More -> Security manages PIN, biometrics, timeout and Lock Now.
-- Phase 10 debug APKs use one stable debug-only signing certificate.
-- Debug package: `com.homiq.app`.
-- Debug SHA-1: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`.
-- The Sync screen shows/copies the actual installed certificate SHA-1 for Google Cloud OAuth setup.
-- Google Drive still requires one-time Drive API + Android OAuth client configuration in the user Google Cloud project.
-- The Phase 10 debug key must never be used for production release signing.
-- Because the signing certificate changes from previous debug builds, the first Phase 10 installation may require backup -> uninstall old app -> install -> restore.
-- InfoCard contrast is improved for dark mode.
-- No database migration is required for Phase 10.
-- Phase 11 is Release Readiness.
-- Next development task after a green Phase 10 build is Phase 11: Release Readiness.
+- User-facing brand is HOMIQU.
+- Android application ID intentionally remains `com.homiq.app`.
+- HOMIQU V1 is `1.0.0` with `versionCode 10000`.
+- Phase 10 PIN/biometric security remains active.
+- Two-phone Google Drive sync using the same Google account has been owner-tested successfully.
+- Debug OAuth identity remains available for development builds.
+- Private release signing uses a separate secret keystore and release SHA-1.
+- The release key is never included in a phase ZIP or repository source.
+- Legacy backup magic and Drive sync identifiers remain unchanged for backward compatibility.
+- Database schema remains version 1; no migration is required.
+- Distribution target is owner/private APK sharing, not Google Play.
+- Final physical release validation is done after the signed V1 APK is generated.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 11
+
+- Rebranded all user-facing app copy from HOMIQ to HOMIQU.
+- Kept `com.homiq.app` and internal legacy identifiers for compatibility.
+- Set V1 version to 1.0.0 / versionCode 10000.
+- Added HOMIQU launcher icon and visible version information.
+- Added secret-backed private release signing configuration.
+- Added private APK release workflow as a separate upload file.
+- Release SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`.
+- Preserved `HOMIQ_BACKUP` and legacy Drive sync identifiers for existing data.
+- No database migration.
 
 ### 31 August 2026, Phase 10
 
@@ -726,11 +740,11 @@ Expected repository state after Phase 10 files are uploaded:
 - Added Google Play services Auth 21.6.0.
 - Drive REST calls use platform HttpURLConnection, avoiding an unnecessary networking dependency.
 - Added INTERNET permission.
-- Added no database migration and no HOMIQ backend dependency.
+- Added no database migration and no HOMIQU backend dependency.
 
 ### 31 August 2026, Phase 8
 
-- Added versioned HOMIQ JSON backup format.
+- Added versioned HOMIQU JSON backup format.
 - Added complete logical snapshot of all six business tables.
 - Preserved sync-ready UUID, timestamp, revision and tombstone metadata.
 - Added Android Storage Access Framework backup creation.
@@ -838,7 +852,7 @@ Expected repository state after Phase 10 files are uploaded:
 
 ### 31 August 2026, Phase 1
 
-- Established HOMIQ deep-green and soft-mint visual system.
+- Established HOMIQU deep-green and soft-mint visual system.
 - Added full five-tab product shell.
 - Added Home zero-state dashboard.
 - Added current-month Calendar shell.
@@ -851,7 +865,7 @@ Expected repository state after Phase 10 files are uploaded:
 
 ### 31 August 2026, Phase 0
 
-- HOMIQ name locked.
+- HOMIQU name locked.
 - Owner-only manual homestay management concept locked.
 - Zero recurring operating cost requirement locked.
 - BM and English requirement locked.

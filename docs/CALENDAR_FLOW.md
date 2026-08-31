@@ -1,4 +1,4 @@
-# HOMIQ Calendar Flow
+# HOMIQU Calendar Flow
 
 Phase 4 connects the calendar to real Room data.
 

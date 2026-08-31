@@ -581,7 +581,7 @@ private fun buildShareText(
     occupancyLabel: String,
     bookingLabel: String,
 ): String = buildString {
-    append("HOMIQ · ")
+    append("HOMIQU · ")
     append(periodLabel)
     append('\n')
     append(revenueLabel)

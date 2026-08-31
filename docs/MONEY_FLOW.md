@@ -1,10 +1,10 @@
-# HOMIQ Money and Expense Flow
+# HOMIQU Money and Expense Flow
 
 Phase 6 activates operating expenses and the live Money screen.
 
 ## Accounting basis
 
-HOMIQ V1 uses a cash-based operational view.
+HOMIQU V1 uses a cash-based operational view.
 
 ### Revenue
 
@@ -105,7 +105,7 @@ Month queries use half-open date ranges:
 
 `[first day of month, first day of next month)`
 
-This matches the date-range convention used elsewhere in HOMIQ.
+This matches the date-range convention used elsewhere in HOMIQU.
 
 ## Database impact
 

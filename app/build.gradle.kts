@@ -13,25 +13,51 @@ android {
         applicationId = "com.homiq.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 10000
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("homiqDebug") {
-            // Dedicated DEBUG key only. Never use this key for release builds.
+            // Stable development certificate retained so installed Phase 10 debug builds
+            // and the existing Google OAuth debug client keep working.
             storeFile = file("homiq-debug.keystore")
             storePassword = "homiq-debug"
             keyAlias = "homiqdebug"
             keyPassword = "homiq-debug"
+        }
+
+        val releaseStorePath = System.getenv("HOMIQU_KEYSTORE_PATH")
+        val releaseStorePassword = System.getenv("HOMIQU_KEYSTORE_PASSWORD")
+        val releaseKeyAlias = System.getenv("HOMIQU_KEY_ALIAS")
+        val releaseKeyPassword = System.getenv("HOMIQU_KEY_PASSWORD")
+
+        if (
+            !releaseStorePath.isNullOrBlank() &&
+            !releaseStorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+        ) {
+            create("homiquRelease") {
+                storeFile = file(releaseStorePath)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
     buildTypes {
         getByName("debug") {
             signingConfig = signingConfigs.getByName("homiqDebug")
+        }
+
+        getByName("release") {
+            signingConfig = signingConfigs.findByName("homiquRelease")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 

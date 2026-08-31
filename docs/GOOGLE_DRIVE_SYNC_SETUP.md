@@ -1,4 +1,4 @@
-# HOMIQ Google Drive Sync Setup
+# HOMIQU Google Drive Sync Setup
 
 Phase 9 contains the Android code for optional same-account Google Drive synchronization.
 
@@ -6,7 +6,7 @@ Google authorization still requires one-time developer configuration in Google C
 
 ## 1. Google Cloud project
 
-Create or select the Google Cloud project used for HOMIQ.
+Create or select the Google Cloud project used for HOMIQU.
 
 Enable:
 
@@ -14,13 +14,13 @@ Enable:
 
 ## 2. OAuth consent screen
 
-Configure the OAuth consent screen for the HOMIQ application.
+Configure the OAuth consent screen for the HOMIQU application.
 
 Declare the narrow Drive application-data scope:
 
 `https://www.googleapis.com/auth/drive.appdata`
 
-HOMIQ does not request full Google Drive access.
+HOMIQU does not request full Google Drive access.
 
 The sync engine stores its current-state files only in Drive `appDataFolder`.
 
@@ -62,11 +62,11 @@ If the OAuth consent configuration is still in Testing, add the Google account u
 
 ## 6. Two-phone test
 
-1. Install a HOMIQ build signed by the registered certificate on Phone A.
+1. Install a HOMIQU build signed by the registered certificate on Phone A.
 2. Open More -> Google Drive Sync.
 3. Connect the intended Google account.
 4. Create a property or booking and sync.
-5. Install the same signed HOMIQ build on Phone B.
+5. Install the same signed HOMIQU build on Phone B.
 6. Connect the same Google account.
 7. Tap Sync Now.
 8. Confirm Phone B receives Phone A data.
@@ -76,11 +76,11 @@ If the OAuth consent configuration is still in Testing, add the Google account u
 
 ## Google Drive architecture
 
-HOMIQ uses the narrow `drive.appdata` OAuth scope.
+HOMIQU uses the narrow `drive.appdata` OAuth scope.
 
 Drive `appDataFolder` is per Google user and private to application data.
 
-Each HOMIQ installation has a stable local device UUID and writes only its own file:
+Each HOMIQU installation has a stable local device UUID and writes only its own file:
 
 `homiq-sync-device-<device-id>.json`
 
@@ -89,7 +89,7 @@ This avoids two phones overwriting the same Drive file concurrently.
 Every sync:
 
 1. Takes a local Room snapshot.
-2. Lists all HOMIQ device snapshot files in `appDataFolder`.
+2. Lists all HOMIQU device snapshot files in `appDataFolder`.
 3. Downloads and decodes valid snapshots.
 4. Merges records by stable UUID.
 5. Keeps tombstones.
@@ -118,13 +118,13 @@ When sync is connected:
 
 Repository changes are debounced before network sync.
 
-HOMIQ does not require a webhook or always-on server.
+HOMIQU does not require a webhook or always-on server.
 
 ## Backup remains separate
 
 Phase 8 Backup & Restore is disaster recovery.
 
-Phase 9 Drive Sync is current-state convergence between HOMIQ installations.
+Phase 9 Drive Sync is current-state convergence between HOMIQU installations.
 
 They are deliberately separate features.
 
@@ -141,3 +141,13 @@ For **debug testing**, create the Android OAuth client with:
 The Sync screen also displays the certificate SHA-1 detected from the installed APK so it can be copied directly.
 
 Do not reuse the Phase 10 debug key as the production release key. Phase 11 will define release signing separately, and its release SHA-1 must also be registered in Google Cloud when production Drive authorization is tested.
+
+
+## HOMIQU V1 private release OAuth client
+
+Private release signing uses a certificate separate from the Phase 10 debug build. Keep the existing debug Android OAuth client and create another Android client with:
+
+- Package: `com.homiq.app`
+- SHA-1: `48:46:FC:28:4B:53:09:21:D3:5D:6A:95:4D:10:A6:2C:49:C9:9A:77`
+
+Both clients use the same Google Cloud project, Drive API and `drive.appdata` scope.
