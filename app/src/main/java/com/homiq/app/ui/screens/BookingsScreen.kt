@@ -73,7 +73,7 @@ fun BookingsScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 18.dp, end = 16.dp, bottom = 116.dp),
+        contentPadding = PaddingValues(start = 16.dp, top = 18.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {

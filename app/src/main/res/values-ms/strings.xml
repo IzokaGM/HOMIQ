@@ -440,4 +440,14 @@
     <string name="bookings_count">%1$d tempahan</string>
     <string name="quick_add_subtitle">Pilih apa yang mahu direkodkan</string>
 
+
+    <string name="onboarding_login_title">Selamat datang ke Homika</string>
+    <string name="onboarding_login_subtitle">Urus perniagaan homestay anda dalam satu ruang kerja yang kemas dan tenang.</string>
+    <string name="onboarding_continue_without_account">Teruskan tanpa akaun</string>
+    <string name="onboarding_google_progress">Menyambung dan menyelaras…</string>
+    <string name="onboarding_setup_pin_checkbox">Sediakan PIN kunci aplikasi</string>
+    <string name="onboarding_setup_pin_hint">Pilihan. Anda boleh ubah tetapan ini kemudian di Keselamatan.</string>
+    <string name="onboarding_pin_error_compact">Masukkan 4–8 digit yang sepadan.</string>
+    <string name="onboarding_local_first_note">Local-first secara lalai. Data kekal pada telefon ini kecuali sync Google Drive disambungkan.</string>
+
 </resources>

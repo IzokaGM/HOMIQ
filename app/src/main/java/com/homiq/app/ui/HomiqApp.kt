@@ -27,6 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarHost
@@ -152,13 +154,12 @@ fun HomiqApp() {
         OnboardingScreen(
             syncViewModel = syncViewModel,
             appLockViewModel = appLockViewModel,
-            onFinished = { createFirstProperty ->
+            onFinished = {
                 onboardingPreferences.complete()
                 onboardingComplete = true
-                if (createFirstProperty) {
-                    routeName = HomiqRoute.PROPERTY_FORM.name
-                    routeId = null
-                }
+                destinationName = HomiqDestination.Home.name
+                routeName = HomiqRoute.MAIN.name
+                routeId = null
             },
         )
         return
@@ -395,48 +396,35 @@ private fun HomikaBottomBar(
     selected: HomiqDestination,
     onSelected: (HomiqDestination) -> Unit,
 ) {
-    Surface(
-        tonalElevation = 4.dp,
-        shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surface,
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 6.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            HomiqDestination.entries.forEach { destination ->
-                val active = destination == selected
-                Column(
-                    modifier = Modifier.weight(1f).clickable { onSelected(destination) }.padding(vertical = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                destination.icon,
-                                contentDescription = null,
-                                tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(21.dp),
-                            )
-                        }
-                    }
+        HomiqDestination.entries.forEach { destination ->
+            val active = destination == selected
+            NavigationBarItem(
+                selected = active,
+                onClick = { onSelected(destination) },
+                icon = {
+                    Icon(
+                        imageVector = destination.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(21.dp),
+                    )
+                },
+                label = {
                     Text(
                         text = stringResource(destination.labelRes),
-                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 10.sp),
-                        color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                        ),
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-            }
+                },
+                alwaysShowLabel = true,
+            )
         }
     }
 }

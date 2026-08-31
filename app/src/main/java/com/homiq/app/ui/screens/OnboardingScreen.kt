@@ -4,10 +4,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,22 +18,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CloudDone
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,31 +43,39 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
+import com.homiq.app.ui.util.messageRes
 import com.homiq.app.ui.viewmodel.AppLockViewModel
+import com.homiq.app.ui.viewmodel.SyncUiMessage
 import com.homiq.app.ui.viewmodel.SyncViewModel
 
 @Composable
 fun OnboardingScreen(
     syncViewModel: SyncViewModel,
     appLockViewModel: AppLockViewModel,
-    onFinished: (createFirstProperty: Boolean) -> Unit,
+    onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val syncState by syncViewModel.state.collectAsStateWithLifecycle()
-    var step by rememberSaveable { mutableStateOf(0) }
+
+    var setupPin by rememberSaveable { mutableStateOf(false) }
     var pin by rememberSaveable { mutableStateOf("") }
     var confirmPin by rememberSaveable { mutableStateOf("") }
     var pinError by rememberSaveable { mutableStateOf(false) }
+    var waitingForGoogle by rememberSaveable { mutableStateOf(false) }
+    var syncErrorRes by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val authorizationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult(),
@@ -88,99 +95,286 @@ fun OnboardingScreen(
         }
     }
 
+    fun pinInputIsValid(): Boolean =
+        !setupPin || (pin.length in 4..8 && pin == confirmPin)
+
+    fun persistPinIfRequested(): Boolean {
+        if (!pinInputIsValid()) {
+            pinError = true
+            return false
+        }
+        return if (setupPin) {
+            appLockViewModel.setPin(pin).also { saved ->
+                pinError = !saved
+            }
+        } else {
+            true
+        }
+    }
+
+    val syncMessage = syncState.message
+    LaunchedEffect(syncMessage, waitingForGoogle) {
+        when (syncMessage) {
+            SyncUiMessage.SyncCompleted -> {
+                if (waitingForGoogle) {
+                    waitingForGoogle = false
+                    if (persistPinIfRequested()) {
+                        syncViewModel.clearMessage()
+                        onFinished()
+                    }
+                } else {
+                    syncViewModel.clearMessage()
+                }
+            }
+
+            is SyncUiMessage.Failure -> {
+                syncErrorRes = syncMessage.reason.messageRes()
+                waitingForGoogle = false
+                syncViewModel.clearMessage()
+            }
+
+            SyncUiMessage.Disconnected -> {
+                syncViewModel.clearMessage()
+            }
+
+            null -> Unit
+        }
+    }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(PaddingValues(horizontal = 24.dp, vertical = 24.dp)),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 22.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
-                OnboardingBrand(step = step)
-                when (step) {
-                    0 -> WelcomeStep()
-                    1 -> AccountStep(
-                        connected = syncState.runtime.enabled,
-                        syncing = syncState.runtime.isSyncing,
-                        onConnect = syncViewModel::connect,
-                    )
-                    else -> SecurityStep(
-                        pin = pin,
-                        confirmPin = confirmPin,
-                        pinError = pinError,
-                        onPinChanged = {
-                            pin = it.filter(Char::isDigit).take(8)
-                            pinError = false
-                        },
-                        onConfirmChanged = {
-                            confirmPin = it.filter(Char::isDigit).take(8)
-                            pinError = false
-                        },
-                    )
-                }
-            }
+            LanguageToggle(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp),
+            )
 
             Column(
-                modifier = Modifier.padding(top = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 70.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                when (step) {
-                    0 -> Button(
-                        onClick = { step = 1 },
-                        modifier = Modifier.fillMaxWidth(),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 440.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.homika_login_logo),
+                        contentDescription = stringResource(R.string.app_name),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(RoundedCornerShape(34.dp)),
+                    )
+
+                    Spacer(Modifier.height(22.dp))
+
+                    Text(
+                        text = stringResource(R.string.onboarding_login_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(R.string.onboarding_login_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+
+                    Spacer(Modifier.height(34.dp))
+
+                    Button(
+                        onClick = {
+                            if (!pinInputIsValid()) {
+                                pinError = true
+                                return@Button
+                            }
+                            pinError = false
+                            syncErrorRes = null
+                            waitingForGoogle = true
+                            syncViewModel.clearMessage()
+                            syncViewModel.connect()
+                        },
+                        enabled = !waitingForGoogle && !syncState.runtime.isSyncing,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
                     ) {
-                        Text(stringResource(R.string.onboarding_start))
+                        if (waitingForGoogle || syncState.runtime.isSyncing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                            Spacer(Modifier.size(9.dp))
+                            Text(stringResource(R.string.onboarding_google_progress))
+                        } else {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Outlined.CloudDone,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.size(9.dp))
+                            Text(stringResource(R.string.onboarding_google_title))
+                        }
                     }
-                    1 -> {
-                        Button(
-                            onClick = { step = 2 },
-                            modifier = Modifier.fillMaxWidth(),
+
+                    TextButton(
+                        onClick = {
+                            if (persistPinIfRequested()) {
+                                onFinished()
+                            }
+                        },
+                        enabled = !waitingForGoogle && !syncState.runtime.isSyncing,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                    ) {
+                        Text(stringResource(R.string.onboarding_continue_without_account))
+                    }
+
+                    val currentSyncErrorRes = syncErrorRes
+                    if (currentSyncErrorRes != null) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.errorContainer,
                         ) {
                             Text(
-                                stringResource(
-                                    if (syncState.runtime.enabled) {
-                                        R.string.onboarding_continue
-                                    } else {
-                                        R.string.onboarding_continue_offline
-                                    },
-                                ),
+                                text = stringResource(currentSyncErrorRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
                             )
                         }
-                        TextButton(
-                            onClick = { step = 0 },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.back))
-                        }
                     }
-                    else -> {
-                        Button(
-                            onClick = {
-                                val wantsPin = pin.isNotBlank() || confirmPin.isNotBlank()
-                                val validPin = !wantsPin || (pin.length in 4..8 && pin == confirmPin)
-                                val saved = if (wantsPin && validPin) appLockViewModel.setPin(pin) else validPin
-                                if (saved) {
-                                    onFinished(true)
-                                } else {
-                                    pinError = true
+
+                    Spacer(Modifier.height(20.dp))
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                        ),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        setupPin = !setupPin
+                                        pinError = false
+                                        if (!setupPin) {
+                                            pin = ""
+                                            confirmPin = ""
+                                        }
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = setupPin,
+                                    onCheckedChange = { checked ->
+                                        setupPin = checked
+                                        pinError = false
+                                        if (!checked) {
+                                            pin = ""
+                                            confirmPin = ""
+                                        }
+                                    },
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 4.dp),
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.onboarding_setup_pin_checkbox),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.onboarding_setup_pin_hint),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.onboarding_add_property))
-                        }
-                        OutlinedButton(
-                            onClick = { onFinished(false) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.onboarding_dashboard))
+                            }
+
+                            if (setupPin) {
+                                OutlinedTextField(
+                                    value = pin,
+                                    onValueChange = {
+                                        pin = it.filter(Char::isDigit).take(8)
+                                        pinError = false
+                                    },
+                                    label = { Text(stringResource(R.string.pin)) },
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.NumberPassword,
+                                    ),
+                                    visualTransformation = PasswordVisualTransformation(),
+                                    singleLine = true,
+                                    isError = pinError,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp),
+                                )
+                                OutlinedTextField(
+                                    value = confirmPin,
+                                    onValueChange = {
+                                        confirmPin = it.filter(Char::isDigit).take(8)
+                                        pinError = false
+                                    },
+                                    label = { Text(stringResource(R.string.confirm_pin)) },
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.NumberPassword,
+                                    ),
+                                    visualTransformation = PasswordVisualTransformation(),
+                                    singleLine = true,
+                                    isError = pinError,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp),
+                                )
+                                if (pinError) {
+                                    Text(
+                                        text = stringResource(R.string.onboarding_pin_error_compact),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.padding(top = 8.dp),
+                                    )
+                                }
+                            }
                         }
                     }
+
+                    Text(
+                        text = stringResource(R.string.onboarding_local_first_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 18.dp, start = 8.dp, end = 8.dp),
+                    )
                 }
             }
         }
@@ -188,248 +382,68 @@ fun OnboardingScreen(
 }
 
 @Composable
-private fun OnboardingBrand(step: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_homika_mark),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(10.dp).size(30.dp),
-                )
-            }
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Text(
-            text = "${step + 1}/3",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun WelcomeStep() {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(R.string.onboarding_welcome_title),
-                style = MaterialTheme.typography.displaySmall,
-            )
-            Text(
-                text = stringResource(R.string.onboarding_welcome_body),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        FeatureRow(Icons.Outlined.CalendarMonth, stringResource(R.string.onboarding_feature_booking))
-        FeatureRow(Icons.Outlined.Payments, stringResource(R.string.onboarding_feature_money))
-        FeatureRow(Icons.Outlined.CloudDone, stringResource(R.string.onboarding_feature_sync))
-
-        LanguageChooser()
-    }
-}
-
-@Composable
-private fun LanguageChooser() {
+private fun LanguageToggle(
+    modifier: Modifier = Modifier,
+) {
     val configuration = LocalConfiguration.current
     val explicit = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-    val language = if (explicit.isBlank()) configuration.locales[0].language else explicit.substringBefore(",").substringBefore("-")
+    val language = if (explicit.isBlank()) {
+        configuration.locales[0].language
+    } else {
+        explicit.substringBefore(",").substringBefore("-")
+    }
 
     Surface(
-        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
-        Column {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(Icons.Outlined.Language, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
-            }
-            HorizontalDivider()
-            LanguageChoice(
-                label = stringResource(R.string.language_malay),
-                selected = language == "ms",
-                onClick = { setLanguage("ms") },
-            )
-            LanguageChoice(
-                label = stringResource(R.string.language_english),
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            LanguageToken(
+                text = "EN",
                 selected = language != "ms",
                 onClick = { setLanguage("en") },
             )
+            Text(
+                text = "|",
+                color = MaterialTheme.colorScheme.outline,
+                style = MaterialTheme.typography.labelMedium,
+            )
+            LanguageToken(
+                text = "MY",
+                selected = language == "ms",
+                onClick = { setLanguage("ms") },
+            )
         }
     }
 }
 
 @Composable
-private fun LanguageChoice(label: String, selected: Boolean, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(label, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
-            RadioButton(selected = selected, onClick = onClick)
-        }
-    }
+private fun LanguageToken(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Text(
+        text = text,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 9.dp, vertical = 7.dp),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    )
 }
 
 private fun setLanguage(tag: String) {
     AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
-}
-
-@Composable
-private fun AccountStep(
-    connected: Boolean,
-    syncing: Boolean,
-    onConnect: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.onboarding_account_title), style = MaterialTheme.typography.headlineMedium)
-            Text(
-                stringResource(R.string.onboarding_account_body),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            color = if (connected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    Icons.Outlined.CloudDone,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(30.dp),
-                )
-                Text(
-                    stringResource(if (connected) R.string.sync_connected else R.string.onboarding_google_title),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    stringResource(if (connected) R.string.onboarding_connected_body else R.string.onboarding_google_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (!connected) {
-                    Button(
-                        onClick = onConnect,
-                        enabled = !syncing,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        if (syncing) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.size(8.dp))
-                        }
-                        Text(stringResource(R.string.onboarding_google_button))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SecurityStep(
-    pin: String,
-    confirmPin: String,
-    pinError: Boolean,
-    onPinChanged: (String) -> Unit,
-    onConfirmChanged: (String) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.onboarding_security_title), style = MaterialTheme.typography.headlineMedium)
-            Text(
-                stringResource(R.string.onboarding_security_body),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.onboarding_pin_optional), style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = pin,
-                    onValueChange = onPinChanged,
-                    label = { Text(stringResource(R.string.pin)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = pinError,
-                )
-                OutlinedTextField(
-                    value = confirmPin,
-                    onValueChange = onConfirmChanged,
-                    label = { Text(stringResource(R.string.confirm_pin)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = pinError,
-                )
-                if (pinError) {
-                    Text(
-                        stringResource(R.string.onboarding_pin_error),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FeatureRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(9.dp).size(20.dp),
-            )
-        }
-        Text(text, style = MaterialTheme.typography.bodyLarge)
-    }
 }

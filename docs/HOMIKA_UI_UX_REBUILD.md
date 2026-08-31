@@ -47,3 +47,17 @@ The onboarding completion flag is local-only and does not change database schema
 ## Compatibility
 
 The package remains `com.homiq.app`. Room schema stays version 1. Existing backup/sync identifiers are intentionally retained where required for compatibility.
+
+## Responsive Fix 2 — Single-page entry and safe navigation
+
+- Replaced the multi-step first-run wizard with one professional entry screen.
+- The entry screen places the approved Homika logo centrally, with an `EN | MY` language switch in the top-right.
+- `Continue with Google` now completes Google Drive authorization and the first sync before entering Home.
+- `Continue without account` enters the local-first app immediately.
+- Optional app-lock PIN setup remains on the same page; enabling the checkbox reveals PIN and confirmation fields inline.
+- First-run state now uses `complete_v2` so existing development installs see the redesigned entry experience once.
+- Replaced the custom bottom navigation implementation with Material 3 `NavigationBar` / `NavigationBarItem`, which handles edge-to-edge navigation-bar insets correctly.
+- Main navigation labels are constrained to a single line for narrow phones and larger display scaling.
+- Calendar month grids now render only the number of week rows actually required by the month instead of forcing six rows.
+- Calendar day cells are square and the Today action is compact, reducing unnecessary vertical space.
+- Main-screen end padding was normalized so the global add FAB remains clear without excessive blank space.

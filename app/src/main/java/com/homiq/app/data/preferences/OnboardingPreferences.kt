@@ -16,6 +16,6 @@ class OnboardingPreferences(context: Context) {
     }
 
     private companion object {
-        const val KEY_COMPLETE = "complete_v1"
+        const val KEY_COMPLETE = "complete_v2"
     }
 }

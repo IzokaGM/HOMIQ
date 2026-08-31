@@ -440,4 +440,14 @@
     <string name="bookings_count">%1$d bookings</string>
     <string name="quick_add_subtitle">Choose what you want to record</string>
 
+
+    <string name="onboarding_login_title">Welcome to Homika</string>
+    <string name="onboarding_login_subtitle">Your homestay business, organised in one calm workspace.</string>
+    <string name="onboarding_continue_without_account">Continue without account</string>
+    <string name="onboarding_google_progress">Connecting and syncing…</string>
+    <string name="onboarding_setup_pin_checkbox">Set up app lock PIN</string>
+    <string name="onboarding_setup_pin_hint">Optional. You can change this later in Security.</string>
+    <string name="onboarding_pin_error_compact">Enter 4–8 matching digits.</string>
+    <string name="onboarding_local_first_note">Local-first by default. Data stays on this phone unless Google Drive sync is connected.</string>
+
 </resources>

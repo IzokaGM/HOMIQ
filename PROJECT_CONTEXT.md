@@ -920,3 +920,18 @@ Expected repository state after Phase 11 files are uploaded:
 - Optional same-account multi-device sync planned.
 - Android local-first architecture selected.
 - Initial repository bootstrap created.
+
+### 1 September 2026 — Homika UI/UX Rebuild Fix 2
+
+- Locked first-run UX to a single page rather than a multi-step wizard.
+- First-run layout: approved Homika logo centered near the top, `EN | MY` in the top-right, Continue with Google, Continue without account, and optional inline app-lock PIN setup.
+- Continue with Google must finish authorization and an actual Drive sync before Home is opened.
+- Continue without account opens Home immediately with local-first behavior when PIN setup is not selected.
+- Optional PIN remains on the same screen; no separate security onboarding page.
+- Onboarding completion key advanced to `complete_v2` so the redesigned entry screen is shown once on existing development installs.
+- Replaced custom bottom navigation with Material 3 NavigationBar for correct Android 3-button/gesture navigation insets.
+- Bottom navigation labels remain single-line and compact on narrow displays.
+- Calendar no longer forces six week rows; month height follows the actual number of weeks.
+- Calendar Today control made compact and selects the actual current day.
+- Main screen bottom content padding normalized for the global FAB.
+- Room schema, booking/payment logic, backup, Google Drive sync protocol, package id `com.homiq.app`, and OAuth compatibility remain unchanged.

@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -199,7 +200,7 @@ fun CalendarScreen(
             start = 16.dp,
             top = 18.dp,
             end = 16.dp,
-            bottom = 116.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -299,9 +300,12 @@ fun CalendarScreen(
                         },
                     )
 
-                    OutlinedButton(
-                        onClick = viewModel::goToToday,
-                        modifier = Modifier.fillMaxWidth(),
+                    TextButton(
+                        onClick = {
+                            selectedDay = today.toEpochDay()
+                            viewModel.goToToday()
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
                     ) {
                         Text(stringResource(R.string.go_to_today))
                     }
@@ -433,7 +437,9 @@ private fun MonthGrid(
     val weekdays = stringArrayResource(R.array.weekdays_short)
     val firstDayOffset = month.atDay(1).dayOfWeek.value % 7
     val cells = remember(month) {
-        List(42) { index ->
+        val usedCells = firstDayOffset + month.lengthOfMonth()
+        val weekCount = (usedCells + 6) / 7
+        List(weekCount * 7) { index ->
             val day = index - firstDayOffset + 1
             if (day in 1..month.lengthOfMonth()) {
                 month.atDay(day)
@@ -466,7 +472,7 @@ private fun MonthGrid(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(0.9f),
+                                .aspectRatio(1f),
                         )
                     } else {
                         val epoch = date.toEpochDay()
@@ -537,7 +543,7 @@ private fun DayCell(
 
     Surface(
         modifier = modifier
-            .aspectRatio(0.9f)
+            .aspectRatio(1f)
             .padding(2.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
