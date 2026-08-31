@@ -539,17 +539,30 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Net income per property
 - [x] General expense separated from property profitability
 - [x] Expense and money calculation unit tests
-- [x] Confirm Phase 6 files build successfully after repository upload
+- [ ] Confirm Phase 6 files build successfully after repository upload
 
 ### Phase 7: Dashboard and reports
 
-- [ ] Today dashboard connected to live data
-- [ ] Check-ins and check-outs
-- [ ] Occupancy formula
-- [ ] Booking source analytics
-- [ ] Monthly report
-- [ ] Yearly report
-- [ ] Export report if useful
+- [x] Home dashboard connected to live Room data
+- [x] Current-month revenue on Home
+- [x] Current-month expenses on Home
+- [x] Current-month net income on Home
+- [x] Occupancy formula
+- [x] Blocked nights excluded from sellable capacity
+- [x] Today's check-ins
+- [x] Today's check-outs
+- [x] Outstanding balance attention list
+- [x] Upcoming bookings
+- [x] Monthly report
+- [x] Yearly report
+- [x] Booking count
+- [x] Booked value
+- [x] Average booking value
+- [x] Booked and available nights
+- [x] Booking source analytics
+- [x] Report sharing through Android share sheet
+- [x] Analytics formula unit tests
+- [x] Confirm Phase 7 files build successfully after repository upload
 
 ### Phase 8: Backup and restore
 
@@ -621,26 +634,44 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 6 files are uploaded:
+Expected repository state after Phase 7 files are uploaded:
 
-- Product shell, Room database, Properties, Bookings, Calendar, Payments and Deposits remain functional.
-- Add Expense is functional from global quick add and the Money screen.
-- Expense can be assigned to one property or stored as a General expense.
-- Expense categories are persisted in Room.
-- Money screen is live and supports previous/current/next month navigation.
-- Revenue is cash-based and counts booking payments received during the selected month.
-- Outstanding booking balances are not counted as revenue.
-- Security deposits are excluded from revenue, expenses and net income.
-- Net income is Revenue minus Expenses and may be negative.
-- Money shows property-level revenue, expenses and net income.
-- General expenses remain separate instead of being artificially allocated to properties.
-- Current-month expense history is visible in Money.
-- No database migration or new external dependency is required for Phase 6.
-- Home dashboard and occupancy/source analytics remain Phase 7.
-- No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green Phase 6 build is Phase 7: Dashboard and Reports.
+- Product shell and all Phase 2-6 local workflows remain functional.
+- Home is now a live operational dashboard.
+- Home shows current-month Revenue, Expenses, Net Income and Occupancy.
+- Home shows today's check-ins and check-outs.
+- Home surfaces outstanding booking balances that need follow-up.
+- Home shows upcoming bookings and opens Booking Details directly.
+- Reports support Monthly and Yearly views.
+- Revenue remains cash-based and follows payment dates.
+- Occupancy is based on booked sellable nights with blocked nights removed from capacity.
+- Source analytics follows booking check-in dates and reports booking count plus booked value.
+- Average booking value, booked nights and available nights are reported.
+- Reports can be shared as text using the Android share sheet.
+- Security deposits remain excluded from financial reporting.
+- No database migration or external dependency is required for Phase 7.
+- Local/Google Drive backup remains Phase 8.
+- No account, Drive, cloud sync or app-lock code is implemented yet.
+- Next development task after a green Phase 7 build is Phase 8: Backup and Restore.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 7
+
+- Connected Home to live business data.
+- Added today's check-in and check-out operations.
+- Added outstanding balance attention cards.
+- Added live upcoming booking cards.
+- Added occupancy based on booked sellable nights.
+- Excluded blocked nights from occupancy capacity.
+- Added Monthly and Yearly reports.
+- Added booking count, booked value and average booking value.
+- Added booking-source analytics.
+- Added report sharing through the Android share sheet.
+- Preserved cash-based financial reporting and strict deposit exclusion.
+- Added analytics formula unit tests.
+- Added `docs/REPORTS_FLOW.md`.
+- Added no schema migration and no external dependency.
 
 ### 31 August 2026, Phase 6
 

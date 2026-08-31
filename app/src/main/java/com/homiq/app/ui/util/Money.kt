@@ -37,3 +37,14 @@ fun formatSenForInput(amountSen: Long): String =
     BigDecimal.valueOf(amountSen, 2)
         .stripTrailingZeros()
         .toPlainString()
+
+
+fun formatPercent(
+    value: Double,
+    locale: Locale,
+): String =
+    String.format(
+        locale,
+        "%.1f%%",
+        value,
+    )

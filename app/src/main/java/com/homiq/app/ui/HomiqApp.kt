@@ -59,14 +59,17 @@ import com.homiq.app.ui.screens.ExpenseFormScreen
 import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
+import com.homiq.app.ui.screens.ReportsScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
 import com.homiq.app.ui.viewmodel.BlockedDateViewModel
 import com.homiq.app.ui.viewmodel.BookingViewModel
 import com.homiq.app.ui.viewmodel.CalendarViewModel
+import com.homiq.app.ui.viewmodel.DashboardViewModel
 import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
 import com.homiq.app.ui.viewmodel.FinanceViewModel
 import com.homiq.app.ui.viewmodel.MoneyViewModel
 import com.homiq.app.ui.viewmodel.PropertyViewModel
+import com.homiq.app.ui.viewmodel.ReportsViewModel
 import kotlinx.coroutines.launch
 
 private enum class HomiqDestination(
@@ -91,6 +94,7 @@ private enum class HomiqRoute {
     PAYMENT_FORM,
     DEPOSIT,
     EXPENSE_FORM,
+    REPORTS,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,6 +122,12 @@ fun HomiqApp() {
         factory = factory,
     )
     val moneyViewModel: MoneyViewModel = viewModel(
+        factory = factory,
+    )
+    val dashboardViewModel: DashboardViewModel = viewModel(
+        factory = factory,
+    )
+    val reportsViewModel: ReportsViewModel = viewModel(
         factory = factory,
     )
 
@@ -220,6 +230,9 @@ fun HomiqApp() {
             HomiqRoute.EXPENSE_FORM ->
                 goMain(HomiqDestination.Money)
 
+            HomiqRoute.REPORTS ->
+                goMain(HomiqDestination.Home)
+
             HomiqRoute.PROPERTIES ->
                 goMain(HomiqDestination.More)
 
@@ -277,6 +290,16 @@ fun HomiqApp() {
         ) { innerPadding ->
             when (selectedDestination) {
                 HomiqDestination.Home -> HomeScreen(
+                    viewModel = dashboardViewModel,
+                    onBookingClick = {
+                        navigate(
+                            HomiqRoute.BOOKING_DETAIL,
+                            id = it,
+                        )
+                    },
+                    onReportsClick = {
+                        navigate(HomiqRoute.REPORTS)
+                    },
                     modifier = Modifier.padding(innerPadding),
                 )
 
@@ -321,6 +344,9 @@ fun HomiqApp() {
                     viewModel = moneyViewModel,
                     onAddExpense = {
                         navigate(HomiqRoute.EXPENSE_FORM)
+                    },
+                    onReportsClick = {
+                        navigate(HomiqRoute.REPORTS)
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -485,6 +511,13 @@ fun HomiqApp() {
                         onSaved = {
                             goMain(HomiqDestination.Money)
                         },
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
+
+                HomiqRoute.REPORTS ->
+                    ReportsScreen(
+                        viewModel = reportsViewModel,
                         modifier = Modifier.padding(innerPadding),
                     )
 

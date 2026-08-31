@@ -263,4 +263,30 @@
 
 <string name="error_invalid_expense_amount">Masukkan jumlah perbelanjaan lebih daripada sifar.</string>
 <string name="error_expense_property_not_found">Homestay yang dipilih tidak lagi tersedia.</string>
+<string name="home_live_subtitle">Operasi hari ini, kewangan dan penginapan akan datang dalam satu paparan.</string>
+<string name="view_reports">Lihat laporan</string>
+<string name="needs_attention">Perlu perhatian</string>
+<string name="no_outstanding_attention">Tiada baki tertunggak</string>
+<string name="no_outstanding_attention_body">Tempahan aktif semasa tidak memerlukan susulan bayaran.</string>
+<string name="check_in_today">Daftar masuk hari ini</string>
+<string name="check_out_today">Daftar keluar hari ini</string>
+
+<string name="reports_live_subtitle">Fahami prestasi tunai, kadar penghunian dan sumber tempahan.</string>
+<string name="monthly_report">Bulanan</string>
+<string name="yearly_report">Tahunan</string>
+<string name="current_year">Tahun semasa</string>
+<string name="report_formula_title">Tiga paparan perniagaan yang berbeza</string>
+<string name="report_formula_body">Hasil ikut tarikh bayaran. Penghunian ikut malam penginapan. Analitik sumber ikut tarikh daftar masuk dan nilai tempahan. Deposit keselamatan dikecualikan daripada keputusan kewangan.</string>
+<string name="booking_performance">Prestasi tempahan</string>
+<string name="booking_count">Tempahan</string>
+<string name="booked_value">Nilai tempahan</string>
+<string name="average_booking_value">Purata nilai tempahan</string>
+<string name="booked_nights">Malam ditempah</string>
+<string name="available_nights">Malam tersedia</string>
+<string name="source_analytics">Sumber tempahan</string>
+<string name="source_booking_count">%1$d tempahan</string>
+<string name="no_source_data">Tiada data sumber</string>
+<string name="no_source_data_body">Tempahan yang tarikh daftar masuknya berada dalam tempoh laporan ini akan dikumpulkan mengikut sumber di sini.</string>
+<string name="share_report">Kongsi laporan</string>
+<string name="report_share_subject">Laporan HOMIQ · %1$s</string>
 </resources>

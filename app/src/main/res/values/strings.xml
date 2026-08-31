@@ -263,4 +263,30 @@
 
 <string name="error_invalid_expense_amount">Enter an expense amount greater than zero.</string>
 <string name="error_expense_property_not_found">The selected property is no longer available.</string>
+<string name="home_live_subtitle">Today, money and upcoming stays in one operational view.</string>
+<string name="view_reports">View reports</string>
+<string name="needs_attention">Needs attention</string>
+<string name="no_outstanding_attention">No outstanding balances</string>
+<string name="no_outstanding_attention_body">Current active bookings do not need payment follow-up.</string>
+<string name="check_in_today">Check-in today</string>
+<string name="check_out_today">Check-out today</string>
+
+<string name="reports_live_subtitle">Understand cash performance, occupancy and where bookings come from.</string>
+<string name="monthly_report">Monthly</string>
+<string name="yearly_report">Yearly</string>
+<string name="current_year">Current year</string>
+<string name="report_formula_title">Three different business views</string>
+<string name="report_formula_body">Revenue follows payment dates. Occupancy follows stayed nights. Source analytics follows booking check-in dates and booked value. Security deposits are excluded from financial results.</string>
+<string name="booking_performance">Booking performance</string>
+<string name="booking_count">Bookings</string>
+<string name="booked_value">Booked value</string>
+<string name="average_booking_value">Average booking value</string>
+<string name="booked_nights">Booked nights</string>
+<string name="available_nights">Available nights</string>
+<string name="source_analytics">Booking sources</string>
+<string name="source_booking_count">%1$d bookings</string>
+<string name="no_source_data">No source data</string>
+<string name="no_source_data_body">Bookings whose check-in falls inside this report period will be grouped by source here.</string>
+<string name="share_report">Share report</string>
+<string name="report_share_subject">HOMIQ report · %1$s</string>
 </resources>

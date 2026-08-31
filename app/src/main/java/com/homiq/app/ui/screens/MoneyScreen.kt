@@ -46,6 +46,7 @@ import java.time.format.DateTimeFormatter
 fun MoneyScreen(
     viewModel: MoneyViewModel,
     onAddExpense: () -> Unit,
+    onReportsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -199,6 +200,19 @@ fun MoneyScreen(
                     R.string.cash_basis_body,
                 ),
             )
+        }
+
+        item {
+            OutlinedButton(
+                onClick = onReportsClick,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(
+                        R.string.view_reports,
+                    ),
+                )
+            }
         }
 
         item {

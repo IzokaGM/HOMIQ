@@ -76,6 +76,25 @@ class HomiqViewModelFactory(
                     ),
                 ) as T
 
+
+            modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
+                DashboardViewModel(
+                    properties = container.properties,
+                    bookings = container.bookings,
+                    blockedDates = container.blockedDates,
+                    payments = container.payments,
+                    expenses = container.expenses,
+                ) as T
+
+            modelClass.isAssignableFrom(ReportsViewModel::class.java) ->
+                ReportsViewModel(
+                    properties = container.properties,
+                    bookings = container.bookings,
+                    blockedDates = container.blockedDates,
+                    payments = container.payments,
+                    expenses = container.expenses,
+                ) as T
+
             else -> error(
                 "Unknown HOMIQ ViewModel: ${modelClass.name}",
             )
