@@ -52,6 +52,9 @@ import com.homiq.app.ui.screens.BookingFormScreen
 import com.homiq.app.ui.screens.BookingsScreen
 import com.homiq.app.ui.screens.CalendarScreen
 import com.homiq.app.ui.screens.HomeScreen
+import com.homiq.app.ui.screens.PaymentFormScreen
+import com.homiq.app.ui.screens.PaymentBookingPickerScreen
+import com.homiq.app.ui.screens.DepositScreen
 import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
@@ -60,6 +63,7 @@ import com.homiq.app.ui.viewmodel.BlockedDateViewModel
 import com.homiq.app.ui.viewmodel.BookingViewModel
 import com.homiq.app.ui.viewmodel.CalendarViewModel
 import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
+import com.homiq.app.ui.viewmodel.FinanceViewModel
 import com.homiq.app.ui.viewmodel.PropertyViewModel
 import kotlinx.coroutines.launch
 
@@ -81,6 +85,9 @@ private enum class HomiqRoute {
     BOOKING_FORM,
     BOOKING_DETAIL,
     BLOCK_DATE_FORM,
+    PAYMENT_PICKER,
+    PAYMENT_FORM,
+    DEPOSIT,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,6 +109,9 @@ fun HomiqApp() {
         factory = factory,
     )
     val blockedDateViewModel: BlockedDateViewModel = viewModel(
+        factory = factory,
+    )
+    val financeViewModel: FinanceViewModel = viewModel(
         factory = factory,
     )
 
@@ -185,6 +195,21 @@ fun HomiqApp() {
 
             HomiqRoute.BLOCK_DATE_FORM ->
                 goMain(HomiqDestination.Calendar)
+
+            HomiqRoute.PAYMENT_PICKER ->
+                goMain(HomiqDestination.Bookings)
+
+            HomiqRoute.PAYMENT_FORM ->
+                navigate(
+                    HomiqRoute.BOOKING_DETAIL,
+                    id = routeId,
+                )
+
+            HomiqRoute.DEPOSIT ->
+                navigate(
+                    HomiqRoute.BOOKING_DETAIL,
+                    id = routeId,
+                )
 
             HomiqRoute.PROPERTIES ->
                 goMain(HomiqDestination.More)
@@ -345,6 +370,7 @@ fun HomiqApp() {
                         BookingDetailScreen(
                             bookingId = id,
                             viewModel = bookingViewModel,
+                            financeViewModel = financeViewModel,
                             onEdit = {
                                 navigate(
                                     HomiqRoute.BOOKING_FORM,
@@ -354,6 +380,18 @@ fun HomiqApp() {
                             onCancelled = {
                                 goMain(
                                     HomiqDestination.Calendar,
+                                )
+                            },
+                            onRecordPayment = {
+                                navigate(
+                                    HomiqRoute.PAYMENT_FORM,
+                                    id = id,
+                                )
+                            },
+                            onManageDeposit = {
+                                navigate(
+                                    HomiqRoute.DEPOSIT,
+                                    id = id,
                                 )
                             },
                             modifier = Modifier.padding(
@@ -376,6 +414,56 @@ fun HomiqApp() {
                         initialStartEpochDay = routeEpochDay,
                         initialPropertyId = routePropertyId,
                     )
+
+
+                HomiqRoute.PAYMENT_PICKER ->
+                    PaymentBookingPickerScreen(
+                        bookingViewModel = bookingViewModel,
+                        financeViewModel = financeViewModel,
+                        onBookingSelected = {
+                            navigate(
+                                HomiqRoute.PAYMENT_FORM,
+                                id = it,
+                            )
+                        },
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
+                HomiqRoute.PAYMENT_FORM -> {
+                    val id = routeId
+                    if (id != null) {
+                        PaymentFormScreen(
+                            bookingId = id,
+                            bookingViewModel = bookingViewModel,
+                            financeViewModel = financeViewModel,
+                            onSaved = {
+                                navigate(
+                                    HomiqRoute.BOOKING_DETAIL,
+                                    id = id,
+                                )
+                            },
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                    }
+                }
+
+                HomiqRoute.DEPOSIT -> {
+                    val id = routeId
+                    if (id != null) {
+                        DepositScreen(
+                            bookingId = id,
+                            bookingViewModel = bookingViewModel,
+                            financeViewModel = financeViewModel,
+                            onDone = {
+                                navigate(
+                                    HomiqRoute.BOOKING_DETAIL,
+                                    id = id,
+                                )
+                            },
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                    }
+                }
 
                 HomiqRoute.MAIN -> Unit
             }
@@ -422,11 +510,7 @@ fun HomiqApp() {
                     ),
                     onClick = {
                         showQuickAdd = false
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                unavailableMessage,
-                            )
-                        }
+                        navigate(HomiqRoute.PAYMENT_PICKER)
                     },
                 )
 

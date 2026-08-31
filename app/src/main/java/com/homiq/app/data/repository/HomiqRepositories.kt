@@ -6,6 +6,7 @@ import com.homiq.app.data.local.entity.DepositEntity
 import com.homiq.app.data.local.entity.ExpenseEntity
 import com.homiq.app.data.local.entity.PaymentEntity
 import com.homiq.app.data.local.entity.PropertyEntity
+import com.homiq.app.data.local.model.BookingBalanceRow
 import kotlinx.coroutines.flow.Flow
 
 interface PropertyRepository {
@@ -37,6 +38,7 @@ interface BookingRepository {
 }
 
 interface PaymentRepository {
+    fun observeBookingBalances(): Flow<List<BookingBalanceRow>>
     fun observeForBooking(bookingId: String): Flow<List<PaymentEntity>>
     fun observeTotalPaidSen(bookingId: String): Flow<Long>
     suspend fun getById(id: String): PaymentEntity?

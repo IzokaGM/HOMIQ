@@ -12,6 +12,7 @@ import com.homiq.app.data.local.entity.DepositEntity
 import com.homiq.app.data.local.entity.ExpenseEntity
 import com.homiq.app.data.local.entity.PaymentEntity
 import com.homiq.app.data.local.entity.PropertyEntity
+import com.homiq.app.data.local.model.BookingBalanceRow
 import kotlinx.coroutines.flow.Flow
 
 private fun now(): Long = System.currentTimeMillis()
@@ -105,6 +106,9 @@ class RoomBookingRepository(
 class RoomPaymentRepository(
     private val dao: PaymentDao,
 ) : PaymentRepository {
+    override fun observeBookingBalances(): Flow<List<BookingBalanceRow>> =
+        dao.observeBookingBalances()
+
     override fun observeForBooking(bookingId: String): Flow<List<PaymentEntity>> =
         dao.observeForBooking(bookingId)
 

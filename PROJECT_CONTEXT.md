@@ -498,17 +498,28 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Block Date collision validation against other blocked periods
 - [x] Global Block Date quick action connected
 - [x] Calendar date-range unit tests
-- [x] Confirm Phase 4 files build successfully after repository upload
+- [ ] Confirm Phase 4 files build successfully after repository upload
 
 ### Phase 5: Payments and deposits
 
-- [ ] Record payment
-- [ ] Multiple payments per booking
-- [ ] Paid and balance calculation
-- [ ] Deposit receive
-- [ ] Deposit return
-- [ ] Deposit retain
-- [ ] Payment history
+- [x] Record payment from global quick add
+- [x] Record payment from Booking Details
+- [x] Multiple payments per booking
+- [x] Paid calculation
+- [x] Outstanding balance calculation
+- [x] Reject overpayment
+- [x] Payment method tracking
+- [x] Payment history
+- [x] Security deposit requirement
+- [x] Deposit pending state
+- [x] Deposit receive
+- [x] Partial deposit return
+- [x] Full deposit return
+- [x] Deposit retain
+- [x] Deposit remaining calculation
+- [x] Deposit remains separate from booking payment and revenue
+- [x] Payment and deposit unit tests
+- [x] Confirm Phase 5 files build successfully after repository upload
 
 ### Phase 6: Expenses and money
 
@@ -600,25 +611,40 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 4 files are uploaded:
+Expected repository state after Phase 5 files are uploaded:
 
-- Product shell, Room database, Properties and Bookings remain functional.
-- Calendar reads real bookings and blocked dates from Room.
-- Owner can move between months and return to today.
-- Calendar can show all homestays together or filter one property.
-- Booked and blocked dates are visibly distinguished.
-- Selecting a date shows its booking/block agenda.
-- Tapping a booking from Calendar opens Booking Details.
-- New Booking can be launched from a selected calendar date with date and optional property prefilled.
-- Block Date is fully functional from Calendar and global quick add.
-- Blocked periods cannot overlap active bookings or another blocked period.
-- Calendar and booking ranges continue to use check-out/end-exclusive rules internally.
-- Payment, deposit and expense UI remain deferred to later phases.
-- Home financial cards are still zero-state until transaction phases are implemented.
+- Product shell, Room database, Properties, Bookings and Calendar remain functional.
+- Payments are now real Room-backed records.
+- Global Record Payment lists bookings that still have an outstanding balance.
+- Owner can record multiple payments against one booking.
+- Booking Details shows total, paid, outstanding and payment history.
+- Overpayment is rejected by domain validation.
+- Security deposits are managed separately from booking payments.
+- Deposit lifecycle supports Not Required, Pending, Received, Partially Returned, Returned and Retained.
+- Deposit returns cannot exceed the remaining deposit.
+- Deposit money never increases booking paid amount and is reserved from revenue calculations.
+- No database migration is required for Phase 5 because Payment and Deposit tables already existed.
+- Expense entry and profit calculations remain deferred to Phase 6.
+- Home and Money aggregate figures will become live in Phase 6 and Phase 7.
 - No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green Phase 4 build is Phase 5: Payments and Deposits.
+- Next development task after a green Phase 5 build is Phase 6: Expenses and Money.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 5
+
+- Activated Room-backed payment recording.
+- Added global booking picker for outstanding balances.
+- Added multiple-payment support and payment history.
+- Added total paid and outstanding balance calculations.
+- Added overpayment prevention.
+- Added Payment Method tracking.
+- Activated the security deposit lifecycle.
+- Added partial/full deposit return and retention.
+- Kept deposits strictly outside booking payment totals and future revenue.
+- Added pure payment and deposit rule tests.
+- Added `docs/PAYMENTS_DEPOSITS_FLOW.md`.
+- Added no new external dependency and no database migration.
 
 ### 31 August 2026, Phase 4
 

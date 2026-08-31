@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.homiq.app.data.local.entity.PaymentEntity
+import com.homiq.app.data.local.model.BookingBalanceRow
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -24,6 +25,28 @@ interface PaymentDao {
         """,
     )
     fun observeTotalPaidSen(bookingId: String): Flow<Long>
+
+
+    @Query(
+        """
+        SELECT
+            b.id AS bookingId,
+            b.totalAmountSen AS totalAmountSen,
+            COALESCE(SUM(
+                CASE
+                    WHEN p.isDeleted = 0 THEN p.amountSen
+                    ELSE 0
+                END
+            ), 0) AS paidAmountSen
+        FROM bookings b
+        LEFT JOIN payments p
+            ON p.bookingId = b.id
+        WHERE b.isDeleted = 0
+        GROUP BY b.id, b.totalAmountSen
+        ORDER BY b.checkInEpochDay ASC
+        """,
+    )
+    fun observeBookingBalances(): Flow<List<BookingBalanceRow>>
 
     @Query("SELECT * FROM payments WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): PaymentEntity?

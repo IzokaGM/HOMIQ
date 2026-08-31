@@ -4,9 +4,13 @@ import androidx.annotation.StringRes
 import com.homiq.app.R
 import com.homiq.app.data.model.BookingSource
 import com.homiq.app.data.model.BookingStatus
+import com.homiq.app.data.model.DepositStatus
+import com.homiq.app.data.model.PaymentMethod
 import com.homiq.app.domain.BookingSaveIssue
 import com.homiq.app.domain.BlockedDateSaveIssue
 import com.homiq.app.domain.PropertySaveIssue
+import com.homiq.app.domain.DepositActionIssue
+import com.homiq.app.domain.PaymentSaveIssue
 
 @StringRes
 fun BookingSource.labelRes(): Int = when (this) {
@@ -59,4 +63,53 @@ fun BlockedDateSaveIssue.messageRes(): Int = when (this) {
         R.string.error_block_booking_overlap
     BlockedDateSaveIssue.BLOCKED_DATE_OVERLAP ->
         R.string.error_block_overlap
+}
+
+
+@StringRes
+fun PaymentMethod.labelRes(): Int = when (this) {
+    PaymentMethod.CASH -> R.string.payment_cash
+    PaymentMethod.BANK_TRANSFER -> R.string.payment_bank_transfer
+    PaymentMethod.E_WALLET -> R.string.payment_e_wallet
+    PaymentMethod.CARD -> R.string.payment_card
+    PaymentMethod.PLATFORM -> R.string.payment_platform
+    PaymentMethod.OTHER -> R.string.payment_other
+}
+
+@StringRes
+fun DepositStatus.labelRes(): Int = when (this) {
+    DepositStatus.NOT_REQUIRED -> R.string.deposit_not_required
+    DepositStatus.PENDING -> R.string.deposit_pending
+    DepositStatus.RECEIVED -> R.string.deposit_received
+    DepositStatus.PARTIALLY_RETURNED -> R.string.deposit_partially_returned
+    DepositStatus.RETURNED -> R.string.deposit_returned
+    DepositStatus.RETAINED -> R.string.deposit_retained
+}
+
+@StringRes
+fun PaymentSaveIssue.messageRes(): Int = when (this) {
+    PaymentSaveIssue.BOOKING_NOT_FOUND ->
+        R.string.error_booking_not_found
+    PaymentSaveIssue.BOOKING_CANCELLED ->
+        R.string.error_payment_cancelled_booking
+    PaymentSaveIssue.INVALID_AMOUNT ->
+        R.string.error_invalid_payment_amount
+    PaymentSaveIssue.NO_OUTSTANDING_BALANCE ->
+        R.string.error_no_outstanding
+    PaymentSaveIssue.EXCEEDS_OUTSTANDING_BALANCE ->
+        R.string.error_payment_exceeds_balance
+}
+
+@StringRes
+fun DepositActionIssue.messageRes(): Int = when (this) {
+    DepositActionIssue.BOOKING_NOT_FOUND ->
+        R.string.error_booking_not_found
+    DepositActionIssue.INVALID_AMOUNT ->
+        R.string.error_invalid_deposit_amount
+    DepositActionIssue.DEPOSIT_NOT_FOUND ->
+        R.string.error_deposit_not_found
+    DepositActionIssue.INVALID_STATE ->
+        R.string.error_deposit_state
+    DepositActionIssue.RETURN_EXCEEDS_REMAINING ->
+        R.string.error_deposit_return_exceeds
 }

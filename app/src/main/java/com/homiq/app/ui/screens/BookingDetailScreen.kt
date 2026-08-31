@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -32,25 +35,55 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.model.BookingStatus
+import com.homiq.app.data.model.DepositStatus
+import com.homiq.app.domain.DepositRules
+import com.homiq.app.domain.PaymentRules
+import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatEpochDay
 import com.homiq.app.ui.util.formatSenAsRinggit
 import com.homiq.app.ui.util.labelRes
 import com.homiq.app.ui.util.nightsBetween
 import com.homiq.app.ui.viewmodel.BookingViewModel
+import com.homiq.app.ui.viewmodel.FinanceViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun BookingDetailScreen(
     bookingId: String,
     viewModel: BookingViewModel,
+    financeViewModel: FinanceViewModel,
     onEdit: () -> Unit,
     onCancelled: () -> Unit,
+    onRecordPayment: () -> Unit,
+    onManageDeposit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val bookings by viewModel.bookingList.collectAsStateWithLifecycle()
     val properties by viewModel.propertyList.collectAsStateWithLifecycle()
     val booking = bookings.firstOrNull { it.id == bookingId }
+
+    val paymentFlow = remember(bookingId) {
+        financeViewModel.paymentsFor(bookingId)
+    }
+    val payments by paymentFlow.collectAsStateWithLifecycle(
+        initialValue = emptyList(),
+    )
+
+    val totalPaidFlow = remember(bookingId) {
+        financeViewModel.totalPaidFor(bookingId)
+    }
+    val totalPaid by totalPaidFlow.collectAsStateWithLifecycle(
+        initialValue = 0L,
+    )
+
+    val depositFlow = remember(bookingId) {
+        financeViewModel.depositFor(bookingId)
+    }
+    val deposit by depositFlow.collectAsStateWithLifecycle(
+        initialValue = null,
+    )
+
     val locale = LocalConfiguration.current.locales[0]
     val scope = rememberCoroutineScope()
     var showCancelDialog by remember { mutableStateOf(false) }
@@ -76,6 +109,11 @@ fun BookingDetailScreen(
         .firstOrNull { it.id == booking.propertyId }
         ?.name
         ?: stringResource(R.string.unknown_property)
+
+    val outstanding = PaymentRules.outstandingSen(
+        bookingTotalSen = booking.totalAmountSen,
+        totalPaidSen = totalPaid,
+    )
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -156,6 +194,188 @@ fun BookingDetailScreen(
                             value = notes,
                         )
                     }
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = stringResource(R.string.payment_summary),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
+
+        item {
+            Surface(
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp,
+            ) {
+                androidx.compose.foundation.layout.Column {
+                    DetailRow(
+                        label = stringResource(R.string.total_booking),
+                        value = formatSenAsRinggit(
+                            booking.totalAmountSen,
+                            locale,
+                        ),
+                    )
+                    HorizontalDivider()
+                    DetailRow(
+                        label = stringResource(R.string.total_paid),
+                        value = formatSenAsRinggit(
+                            totalPaid,
+                            locale,
+                        ),
+                    )
+                    HorizontalDivider()
+                    DetailRow(
+                        label = stringResource(R.string.outstanding),
+                        value = formatSenAsRinggit(
+                            outstanding,
+                            locale,
+                        ),
+                    )
+                }
+            }
+        }
+
+        if (
+            outstanding > 0L &&
+            booking.status != BookingStatus.CANCELLED
+        ) {
+            item {
+                Button(
+                    onClick = onRecordPayment,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Payments,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.record_payment),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+        }
+
+        if (payments.isNotEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.payment_history),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+
+            items(
+                items = payments.reversed(),
+                key = { it.id },
+            ) { payment ->
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 1.dp,
+                ) {
+                    androidx.compose.foundation.layout.Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        Text(
+                            text = formatSenAsRinggit(
+                                payment.amountSen,
+                                locale,
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = stringResource(
+                                payment.method.labelRes(),
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = formatEpochDay(
+                                payment.paymentDateEpochDay,
+                                locale,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        payment.notes?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = stringResource(R.string.security_deposit),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
+
+        item {
+            val currentDeposit = deposit
+            if (
+                currentDeposit == null ||
+                currentDeposit.status == DepositStatus.NOT_REQUIRED
+            ) {
+                InfoCard(
+                    title = stringResource(
+                        R.string.deposit_not_required,
+                    ),
+                    body = stringResource(
+                        R.string.deposit_not_required_body,
+                    ),
+                )
+            } else {
+                val remaining = DepositRules.remainingSen(
+                    depositAmountSen = currentDeposit.amountSen,
+                    returnedAmountSen =
+                        currentDeposit.returnedAmountSen,
+                )
+                InfoCard(
+                    title = stringResource(
+                        currentDeposit.status.labelRes(),
+                    ),
+                    body = stringResource(
+                        R.string.deposit_summary_body,
+                        formatSenAsRinggit(
+                            currentDeposit.amountSen,
+                            locale,
+                        ),
+                        formatSenAsRinggit(
+                            remaining,
+                            locale,
+                        ),
+                    ),
+                )
+            }
+        }
+
+        if (booking.status != BookingStatus.CANCELLED) {
+            item {
+                OutlinedButton(
+                    onClick = onManageDeposit,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Security,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.manage_deposit,
+                        ),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
                 }
             }
         }

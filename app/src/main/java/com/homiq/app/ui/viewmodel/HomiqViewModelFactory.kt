@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.homiq.app.data.HomiqAppContainer
 import com.homiq.app.domain.BookingManager
 import com.homiq.app.domain.BlockedDateManager
+import com.homiq.app.domain.DepositManager
+import com.homiq.app.domain.PaymentManager
 
 class HomiqViewModelFactory(
     private val container: HomiqAppContainer,
@@ -43,6 +45,21 @@ class HomiqViewModelFactory(
                         properties = container.properties,
                         bookings = container.bookings,
                         blockedDates = container.blockedDates,
+                    ),
+                ) as T
+
+
+            modelClass.isAssignableFrom(FinanceViewModel::class.java) ->
+                FinanceViewModel(
+                    payments = container.payments,
+                    deposits = container.deposits,
+                    paymentManager = PaymentManager(
+                        bookings = container.bookings,
+                        payments = container.payments,
+                    ),
+                    depositManager = DepositManager(
+                        bookings = container.bookings,
+                        deposits = container.deposits,
                     ),
                 ) as T
 
