@@ -1,6 +1,7 @@
 package com.homiq.app.ui.screens
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,6 +33,7 @@ import com.homiq.app.ui.components.ScreenHeader
 
 @Composable
 fun MoreScreen(
+    onPropertiesClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -76,6 +78,7 @@ fun MoreScreen(
                     icon = Icons.Outlined.Home,
                     title = stringResource(R.string.properties),
                     body = stringResource(R.string.properties_body),
+                    onClick = onPropertiesClick,
                 )
                 HorizontalDivider()
                 SettingsRow(
@@ -147,8 +150,14 @@ private fun SettingsRow(
     title: String,
     body: String,
     trailing: String? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     ListItem(
+        modifier = if (onClick != null) {
+            Modifier.clickable(onClick = onClick)
+        } else {
+            Modifier
+        },
         headlineContent = {
             Text(
                 text = title,

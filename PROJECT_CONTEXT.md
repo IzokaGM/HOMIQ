@@ -459,18 +459,26 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Blocked Date repository
 - [x] Add overlap-query foundation for booking and blocked dates
 - [x] Add local database instrumented test
-- [x] Confirm Phase 2 files build successfully after repository upload
+- [ ] Confirm Phase 2 files build successfully after repository upload
 
 ### Phase 3: Properties and bookings
 
-- [ ] Property management
-- [ ] New booking form
-- [ ] Booking validation
-- [ ] Double booking prevention
-- [ ] Booking details
-- [ ] Edit booking
-- [ ] Cancel booking
-- [ ] Booking source tracking
+- [x] Property management list
+- [x] Add property
+- [x] Edit property
+- [x] Active/inactive property state
+- [x] New booking form
+- [x] Booking validation
+- [x] Double booking prevention
+- [x] Blocked date collision prevention
+- [x] Booking list connected to Room
+- [x] Booking filters
+- [x] Booking details
+- [x] Edit booking
+- [x] Cancel booking without deleting history
+- [x] Booking source tracking
+- [x] Unit tests for half-open date overlap rules
+- [x] Confirm Phase 3 files build successfully after repository upload
 
 ### Phase 4: Calendar
 
@@ -581,28 +589,44 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 1 files are uploaded:
+Expected repository state after Phase 3 files are uploaded:
 
-- Android project remains on compileSdk 36.
-- HOMIQ opens into the five-tab product shell.
-- Home shows zero-state business summary cards.
-- Calendar renders the current month before database integration.
-- Bookings, Money and More have polished zero-state shells.
-- Global quick-add UI exists but is intentionally not wired to persistence yet.
-- English and Bahasa Melayu can be changed at runtime.
-- Light and dark HOMIQ themes are present.
-- Room local database version 1 is implemented.
-- Property, Booking, Payment, Deposit, Expense and Blocked Date tables are defined.
-- Repository boundaries are implemented for all Phase 2 business tables.
-- Money is stored as integer sen to avoid floating-point rounding.
-- Booking and blocked-date ranges use check-out/end-exclusive overlap rules.
-- Stable UUID, revision, timestamps and soft-delete metadata are present for future sync.
-- Explicit migration policy is established and destructive migration is disabled.
-- Local Room instrumented coverage exists for overlap and payment-total behaviour.
+- Phase 1 product shell is included in this package to repair repositories where the earlier shell was not applied.
+- Room local database version 1 remains the source of truth.
+- Owner can add and edit homestay properties.
+- Properties can be active or inactive.
+- Owner can create a real manual booking from the global add action.
+- Booking form stores property, guest, phone, dates, source, total and notes.
+- Booking validation rejects invalid date ranges and invalid money input.
+- Active booking overlaps are rejected before save.
+- Blocked-date overlaps are also rejected before save.
+- Check-out day is exclusive, so same-day turnover is allowed.
+- Bookings tab reads real local Room data.
+- Booking details support edit and cancel.
+- Cancellation preserves booking history and releases its dates.
+- Booking sources are persisted for later analytics.
+- Payment, deposit and expense UI remain intentionally deferred.
+- Calendar still uses the Phase 1 visual shell and will become data-driven in Phase 4.
 - No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green Phase 2 build is Phase 3: Properties and Bookings.
+- Next development task after a green Phase 3 build is Phase 4: Calendar.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 3
+
+- Added property management with add, edit and active state.
+- Connected Bookings UI to Room data.
+- Added real manual booking creation.
+- Added date, guest, property and amount validation.
+- Added double-booking and blocked-date collision prevention.
+- Added booking detail and edit flows.
+- Added non-destructive cancellation.
+- Added booking source persistence and display.
+- Added pure unit coverage for half-open date-range rules.
+- Lifecycle Compose pinned to 2.10.0 to preserve compileSdk 36 compatibility.
+- Phase 3 compile correction removes obsolete explicit Compose `weight` imports and uses explicit suspend repository lookups for Kotlin 2.4 compatibility.
+- Added `docs/BOOKING_FLOW.md`.
+- Included the Phase 1 product shell as a self-heal because the live repository still exposed the original foundation UI when Phase 3 work began.
 
 ### 31 August 2026, Phase 2
 

@@ -1,5 +1,6 @@
 package com.homiq.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,14 +40,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.homiq.app.HomiqApplication
 import com.homiq.app.R
+import com.homiq.app.ui.screens.BookingDetailScreen
+import com.homiq.app.ui.screens.BookingFormScreen
 import com.homiq.app.ui.screens.BookingsScreen
 import com.homiq.app.ui.screens.CalendarScreen
 import com.homiq.app.ui.screens.HomeScreen
 import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
+import com.homiq.app.ui.screens.PropertiesScreen
+import com.homiq.app.ui.screens.PropertyFormScreen
+import com.homiq.app.ui.viewmodel.BookingViewModel
+import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
+import com.homiq.app.ui.viewmodel.PropertyViewModel
 import kotlinx.coroutines.launch
 
 private enum class HomiqDestination(
@@ -60,82 +71,238 @@ private enum class HomiqDestination(
     More(R.string.nav_more, Icons.Outlined.MoreHoriz),
 }
 
+private enum class HomiqRoute {
+    MAIN,
+    PROPERTIES,
+    PROPERTY_FORM,
+    BOOKING_FORM,
+    BOOKING_DETAIL,
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomiqApp() {
+    val application = LocalContext.current.applicationContext
+        as HomiqApplication
+    val factory = remember(application) {
+        HomiqViewModelFactory(application.container)
+    }
+    val propertyViewModel: PropertyViewModel = viewModel(
+        factory = factory,
+    )
+    val bookingViewModel: BookingViewModel = viewModel(
+        factory = factory,
+    )
+
     var destinationName by rememberSaveable {
         mutableStateOf(HomiqDestination.Home.name)
+    }
+    var routeName by rememberSaveable {
+        mutableStateOf(HomiqRoute.MAIN.name)
+    }
+    var routeId by rememberSaveable {
+        mutableStateOf<String?>(null)
     }
     var showQuickAdd by rememberSaveable { mutableStateOf(false) }
 
     val selectedDestination = remember(destinationName) {
-        HomiqDestination.entries.firstOrNull { it.name == destinationName }
-            ?: HomiqDestination.Home
+        HomiqDestination.entries.firstOrNull {
+            it.name == destinationName
+        } ?: HomiqDestination.Home
+    }
+    val route = remember(routeName) {
+        HomiqRoute.entries.firstOrNull {
+            it.name == routeName
+        } ?: HomiqRoute.MAIN
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val unavailableMessage = stringResource(R.string.feature_next_phase)
+    val unavailableMessage = stringResource(
+        R.string.feature_next_phase,
+    )
 
-    fun onQuickAction() {
-        showQuickAdd = false
-        scope.launch {
-            snackbarHostState.showSnackbar(unavailableMessage)
+    fun navigate(
+        newRoute: HomiqRoute,
+        id: String? = null,
+    ) {
+        routeName = newRoute.name
+        routeId = id
+    }
+
+    fun goMain() {
+        navigate(HomiqRoute.MAIN)
+    }
+
+    BackHandler(enabled = route != HomiqRoute.MAIN) {
+        when (route) {
+            HomiqRoute.PROPERTY_FORM ->
+                navigate(HomiqRoute.PROPERTIES)
+            HomiqRoute.BOOKING_FORM -> {
+                if (routeId != null) {
+                    navigate(
+                        HomiqRoute.BOOKING_DETAIL,
+                        routeId,
+                    )
+                } else {
+                    goMain()
+                }
+            }
+            HomiqRoute.BOOKING_DETAIL -> goMain()
+            HomiqRoute.PROPERTIES -> goMain()
+            HomiqRoute.MAIN -> Unit
         }
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
-        bottomBar = {
-            NavigationBar {
-                HomiqDestination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = selectedDestination == destination,
-                        onClick = { destinationName = destination.name },
-                        icon = {
-                            Icon(
-                                imageVector = destination.icon,
-                                contentDescription = null,
-                            )
-                        },
-                        label = {
-                            Text(text = stringResource(destination.labelRes))
-                        },
+    if (route == HomiqRoute.MAIN) {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            bottomBar = {
+                NavigationBar {
+                    HomiqDestination.entries.forEach { destination ->
+                        NavigationBarItem(
+                            selected =
+                                selectedDestination == destination,
+                            onClick = {
+                                destinationName = destination.name
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = destination.icon,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = stringResource(
+                                        destination.labelRes,
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { showQuickAdd = true },
+                    containerColor =
+                        MaterialTheme.colorScheme.primary,
+                    contentColor =
+                        MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = stringResource(
+                            R.string.quick_add,
+                        ),
                     )
                 }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showQuickAdd = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = stringResource(R.string.quick_add),
+            },
+        ) { innerPadding ->
+            when (selectedDestination) {
+                HomiqDestination.Home -> HomeScreen(
+                    modifier = Modifier.padding(innerPadding),
+                )
+                HomiqDestination.Calendar -> CalendarScreen(
+                    modifier = Modifier.padding(innerPadding),
+                )
+                HomiqDestination.Bookings -> BookingsScreen(
+                    viewModel = bookingViewModel,
+                    onBookingClick = {
+                        navigate(
+                            HomiqRoute.BOOKING_DETAIL,
+                            it,
+                        )
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+                HomiqDestination.Money -> MoneyScreen(
+                    modifier = Modifier.padding(innerPadding),
+                )
+                HomiqDestination.More -> MoreScreen(
+                    onPropertiesClick = {
+                        navigate(HomiqRoute.PROPERTIES)
+                    },
+                    modifier = Modifier.padding(innerPadding),
                 )
             }
-        },
-    ) { innerPadding ->
-        when (selectedDestination) {
-            HomiqDestination.Home -> HomeScreen(
-                modifier = Modifier.padding(innerPadding),
-            )
-            HomiqDestination.Calendar -> CalendarScreen(
-                modifier = Modifier.padding(innerPadding),
-            )
-            HomiqDestination.Bookings -> BookingsScreen(
-                modifier = Modifier.padding(innerPadding),
-            )
-            HomiqDestination.Money -> MoneyScreen(
-                modifier = Modifier.padding(innerPadding),
-            )
-            HomiqDestination.More -> MoreScreen(
-                modifier = Modifier.padding(innerPadding),
-            )
+        }
+    } else {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+        ) { innerPadding ->
+            when (route) {
+                HomiqRoute.PROPERTIES -> PropertiesScreen(
+                    viewModel = propertyViewModel,
+                    onAddProperty = {
+                        navigate(HomiqRoute.PROPERTY_FORM)
+                    },
+                    onPropertyClick = {
+                        navigate(
+                            HomiqRoute.PROPERTY_FORM,
+                            it,
+                        )
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+
+                HomiqRoute.PROPERTY_FORM -> PropertyFormScreen(
+                    propertyId = routeId,
+                    viewModel = propertyViewModel,
+                    onSaved = {
+                        navigate(HomiqRoute.PROPERTIES)
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+
+                HomiqRoute.BOOKING_FORM -> BookingFormScreen(
+                    bookingId = routeId,
+                    viewModel = bookingViewModel,
+                    onSaved = {
+                        destinationName =
+                            HomiqDestination.Bookings.name
+                        navigate(
+                            HomiqRoute.BOOKING_DETAIL,
+                            it,
+                        )
+                    },
+                    onNeedProperty = {
+                        navigate(HomiqRoute.PROPERTY_FORM)
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+
+                HomiqRoute.BOOKING_DETAIL -> {
+                    val id = routeId
+                    if (id != null) {
+                        BookingDetailScreen(
+                            bookingId = id,
+                            viewModel = bookingViewModel,
+                            onEdit = {
+                                navigate(
+                                    HomiqRoute.BOOKING_FORM,
+                                    id,
+                                )
+                            },
+                            onCancelled = {
+                                destinationName =
+                                    HomiqDestination.Bookings.name
+                                goMain()
+                            },
+                            modifier = Modifier.padding(
+                                innerPadding,
+                            ),
+                        )
+                    }
+                }
+
+                HomiqRoute.MAIN -> Unit
+            }
         }
     }
 
@@ -162,25 +329,51 @@ fun HomiqApp() {
                 QuickActionRow(
                     icon = Icons.Outlined.EventNote,
                     title = stringResource(R.string.new_booking),
-                    onClick = ::onQuickAction,
+                    onClick = {
+                        showQuickAdd = false
+                        navigate(HomiqRoute.BOOKING_FORM)
+                    },
                 )
                 HorizontalDivider()
                 QuickActionRow(
                     icon = Icons.Outlined.Payments,
-                    title = stringResource(R.string.record_payment),
-                    onClick = ::onQuickAction,
+                    title = stringResource(
+                        R.string.record_payment,
+                    ),
+                    onClick = {
+                        showQuickAdd = false
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                unavailableMessage,
+                            )
+                        }
+                    },
                 )
                 HorizontalDivider()
                 QuickActionRow(
                     icon = Icons.Outlined.ReceiptLong,
                     title = stringResource(R.string.add_expense),
-                    onClick = ::onQuickAction,
+                    onClick = {
+                        showQuickAdd = false
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                unavailableMessage,
+                            )
+                        }
+                    },
                 )
                 HorizontalDivider()
                 QuickActionRow(
                     icon = Icons.Outlined.Block,
                     title = stringResource(R.string.block_date),
-                    onClick = ::onQuickAction,
+                    onClick = {
+                        showQuickAdd = false
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                unavailableMessage,
+                            )
+                        }
+                    },
                 )
             }
         }
