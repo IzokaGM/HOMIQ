@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.homiq.app.data.local.dao.BackupDao
 import com.homiq.app.data.local.dao.BlockedDateDao
 import com.homiq.app.data.local.dao.BookingDao
 import com.homiq.app.data.local.dao.DepositDao
@@ -32,6 +33,7 @@ import com.homiq.app.data.local.entity.PropertyEntity
 )
 @TypeConverters(HomiqTypeConverters::class)
 abstract class HomiqDatabase : RoomDatabase() {
+    abstract fun backupDao(): BackupDao
     abstract fun propertyDao(): PropertyDao
     abstract fun bookingDao(): BookingDao
     abstract fun paymentDao(): PaymentDao

@@ -562,18 +562,26 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Booking source analytics
 - [x] Report sharing through Android share sheet
 - [x] Analytics formula unit tests
-- [x] Confirm Phase 7 files build successfully after repository upload
+- [ ] Confirm Phase 7 files build successfully after repository upload
 
 ### Phase 8: Backup and restore
 
-- [ ] Backup schema and versioning
-- [ ] Local export
-- [ ] Local import
-- [ ] Restore validation
-- [ ] Google sign-in for Drive
-- [ ] Google Drive backup
-- [ ] Google Drive restore
-- [ ] Backup status
+- [x] Versioned portable HOMIQ backup format
+- [x] Backup all six Room business tables
+- [x] Preserve stable IDs, sync revisions and tombstones
+- [x] Consistent backup snapshot inside Room transaction
+- [x] Local backup through Android system file picker
+- [x] Google Drive-compatible backup through system DocumentsProvider picker
+- [x] No broad storage permission required
+- [x] Restore file validation before database changes
+- [x] Foreign-key relationship validation
+- [x] Restore preview and explicit confirmation
+- [x] Transactional full restore
+- [x] Restore rollback on failure
+- [x] Last successful backup timestamp
+- [x] Last successful restore timestamp
+- [x] Backup codec round-trip unit test
+- [x] Confirm Phase 8 files build successfully after repository upload
 
 ### Phase 9: Optional multi-device sync
 
@@ -634,27 +642,41 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 7 files are uploaded:
+Expected repository state after Phase 8 files are uploaded:
 
-- Product shell and all Phase 2-6 local workflows remain functional.
-- Home is now a live operational dashboard.
-- Home shows current-month Revenue, Expenses, Net Income and Occupancy.
-- Home shows today's check-ins and check-outs.
-- Home surfaces outstanding booking balances that need follow-up.
-- Home shows upcoming bookings and opens Booking Details directly.
-- Reports support Monthly and Yearly views.
-- Revenue remains cash-based and follows payment dates.
-- Occupancy is based on booked sellable nights with blocked nights removed from capacity.
-- Source analytics follows booking check-in dates and reports booking count plus booked value.
-- Average booking value, booked nights and available nights are reported.
-- Reports can be shared as text using the Android share sheet.
-- Security deposits remain excluded from financial reporting.
-- No database migration or external dependency is required for Phase 7.
-- Local/Google Drive backup remains Phase 8.
-- No account, Drive, cloud sync or app-lock code is implemented yet.
-- Next development task after a green Phase 7 build is Phase 8: Backup and Restore.
+- All Phase 1-7 owner workflows remain local-first and functional.
+- Backup & Restore is now functional from More.
+- HOMIQ creates a versioned portable JSON backup instead of copying raw SQLite files.
+- All Property, Booking, Payment, Deposit, Expense and Blocked Date records are backed up.
+- Stable UUIDs, timestamps, revisions and tombstones are preserved for future sync.
+- Android's system file picker lets the owner save to local/external storage or an installed cloud DocumentsProvider such as Google Drive.
+- Google Drive backup does not require a HOMIQ backend or Drive password.
+- Restore validates format, schema compatibility and entity relationships before changing live data.
+- Restore requires explicit owner confirmation after showing backup statistics.
+- Full restore runs in one Room transaction and rolls back on failure.
+- Last successful backup and restore times are shown locally.
+- No database migration and no external dependency are required for Phase 8.
+- Live two-device synchronization is intentionally separate and remains Phase 9.
+- App lock and final polish remain Phase 10.
+- Next development task after a green Phase 8 build is Phase 9: Multi-device Sync.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 8
+
+- Added versioned HOMIQ JSON backup format.
+- Added complete logical snapshot of all six business tables.
+- Preserved sync-ready UUID, timestamp, revision and tombstone metadata.
+- Added Android Storage Access Framework backup creation.
+- Enabled Google Drive-compatible backup through the system document provider.
+- Added backup file inspection and compatibility validation.
+- Added foreign-key and deposit uniqueness validation before restore.
+- Added restore preview with explicit owner confirmation.
+- Added full transactional restore with rollback safety.
+- Added local last-backup and last-restore history.
+- Added backup codec round-trip unit coverage.
+- Added `docs/BACKUP_RESTORE_FLOW.md`.
+- Added no schema migration and no external dependency.
 
 ### 31 August 2026, Phase 7
 

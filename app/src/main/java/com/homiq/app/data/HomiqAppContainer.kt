@@ -1,6 +1,7 @@
 package com.homiq.app.data
 
 import android.content.Context
+import com.homiq.app.data.backup.HomiqBackupService
 import com.homiq.app.data.local.HomiqDatabase
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
@@ -44,5 +45,12 @@ class HomiqAppContainer(
 
     val blockedDates: BlockedDateRepository by lazy {
         RoomBlockedDateRepository(database.blockedDateDao())
+    }
+
+    val backupService: HomiqBackupService by lazy {
+        HomiqBackupService(
+            context = context,
+            database = database,
+        )
     }
 }

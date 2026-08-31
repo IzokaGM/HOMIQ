@@ -34,6 +34,7 @@ import com.homiq.app.ui.components.ScreenHeader
 @Composable
 fun MoreScreen(
     onPropertiesClick: () -> Unit,
+    onBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -85,6 +86,7 @@ fun MoreScreen(
                     icon = Icons.Outlined.Backup,
                     title = stringResource(R.string.backup_restore),
                     body = stringResource(R.string.backup_restore_body),
+                    onClick = onBackupClick,
                 )
                 HorizontalDivider()
                 SettingsRow(

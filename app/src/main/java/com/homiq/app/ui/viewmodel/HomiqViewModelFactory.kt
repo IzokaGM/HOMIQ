@@ -95,6 +95,12 @@ class HomiqViewModelFactory(
                     expenses = container.expenses,
                 ) as T
 
+
+            modelClass.isAssignableFrom(BackupViewModel::class.java) ->
+                BackupViewModel(
+                    service = container.backupService,
+                ) as T
+
             else -> error(
                 "Unknown HOMIQ ViewModel: ${modelClass.name}",
             )

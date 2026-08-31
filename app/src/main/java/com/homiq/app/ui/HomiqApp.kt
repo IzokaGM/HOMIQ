@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homiq.app.HomiqApplication
 import com.homiq.app.R
+import com.homiq.app.ui.screens.BackupScreen
 import com.homiq.app.ui.screens.BlockDateFormScreen
 import com.homiq.app.ui.screens.BookingDetailScreen
 import com.homiq.app.ui.screens.BookingFormScreen
@@ -61,6 +62,7 @@ import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
 import com.homiq.app.ui.screens.ReportsScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
+import com.homiq.app.ui.viewmodel.BackupViewModel
 import com.homiq.app.ui.viewmodel.BlockedDateViewModel
 import com.homiq.app.ui.viewmodel.BookingViewModel
 import com.homiq.app.ui.viewmodel.CalendarViewModel
@@ -95,6 +97,7 @@ private enum class HomiqRoute {
     DEPOSIT,
     EXPENSE_FORM,
     REPORTS,
+    BACKUP,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,6 +131,9 @@ fun HomiqApp() {
         factory = factory,
     )
     val reportsViewModel: ReportsViewModel = viewModel(
+        factory = factory,
+    )
+    val backupViewModel: BackupViewModel = viewModel(
         factory = factory,
     )
 
@@ -232,6 +238,9 @@ fun HomiqApp() {
 
             HomiqRoute.REPORTS ->
                 goMain(HomiqDestination.Home)
+
+            HomiqRoute.BACKUP ->
+                goMain(HomiqDestination.More)
 
             HomiqRoute.PROPERTIES ->
                 goMain(HomiqDestination.More)
@@ -354,6 +363,9 @@ fun HomiqApp() {
                 HomiqDestination.More -> MoreScreen(
                     onPropertiesClick = {
                         navigate(HomiqRoute.PROPERTIES)
+                    },
+                    onBackupClick = {
+                        navigate(HomiqRoute.BACKUP)
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -518,6 +530,13 @@ fun HomiqApp() {
                 HomiqRoute.REPORTS ->
                     ReportsScreen(
                         viewModel = reportsViewModel,
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
+
+                HomiqRoute.BACKUP ->
+                    BackupScreen(
+                        viewModel = backupViewModel,
                         modifier = Modifier.padding(innerPadding),
                     )
 
