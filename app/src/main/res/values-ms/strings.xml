@@ -148,4 +148,26 @@
 <string name="error_property_name_required">Masukkan nama homestay.</string>
 <string name="error_invalid_rate">Masukkan kadar semalam yang sah.</string>
     <string name="notes">Catatan</string>
+<string name="calendar_live_subtitle">Lihat tempahan, tarikh disekat dan kekosongan untuk semua homestay.</string>
+<string name="property_filter">Paparan homestay</string>
+<string name="previous_month">Bulan sebelumnya</string>
+<string name="next_month">Bulan seterusnya</string>
+<string name="go_to_today">Hari ini</string>
+<string name="legend_booked">Ditempah</string>
+<string name="legend_blocked">Disekat</string>
+<string name="book_from_date">Tempah</string>
+<string name="block_from_date">Sekat</string>
+<string name="selected_date_title">%1$s</string>
+<string name="date_available">Tersedia</string>
+<string name="date_available_body">Tiada tempahan aktif atau tarikh disekat direkodkan untuk pilihan ini.</string>
+<string name="blocked">Disekat</string>
+<string name="block_date_subtitle">Simpan tarikh untuk penyelenggaraan, kegunaan pemilik atau tempoh yang tidak menerima tempahan.</string>
+<string name="block_needs_property">Tambah sekurang-kurangnya satu homestay aktif sebelum menyekat tarikh.</string>
+<string name="block_from">Sekat dari</string>
+<string name="block_until">Sekat sehingga</string>
+<string name="block_reason">Sebab</string>
+<string name="save_blocked_date">Simpan tarikh disekat</string>
+<string name="error_invalid_block_dates">Tarikh akhir sekatan mesti sama atau selepas tarikh mula.</string>
+<string name="error_block_booking_overlap">Tarikh ini bertindih dengan tempahan aktif untuk homestay ini.</string>
+<string name="error_block_overlap">Tarikh ini bertindih dengan tempoh sekatan lain untuk homestay ini.</string>
 </resources>

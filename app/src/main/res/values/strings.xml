@@ -148,4 +148,26 @@
 <string name="error_property_name_required">Enter the property name.</string>
 <string name="error_invalid_rate">Enter a valid nightly rate.</string>
     <string name="notes">Notes</string>
+<string name="calendar_live_subtitle">See bookings, blocked dates and availability across every homestay.</string>
+<string name="property_filter">Property view</string>
+<string name="previous_month">Previous month</string>
+<string name="next_month">Next month</string>
+<string name="go_to_today">Today</string>
+<string name="legend_booked">Booked</string>
+<string name="legend_blocked">Blocked</string>
+<string name="book_from_date">Book</string>
+<string name="block_from_date">Block</string>
+<string name="selected_date_title">%1$s</string>
+<string name="date_available">Available</string>
+<string name="date_available_body">No active booking or blocked date is recorded for this selection.</string>
+<string name="blocked">Blocked</string>
+<string name="block_date_subtitle">Reserve dates for maintenance, owner use or any period that should not accept bookings.</string>
+<string name="block_needs_property">Add at least one active property before blocking a date.</string>
+<string name="block_from">Block from</string>
+<string name="block_until">Block until</string>
+<string name="block_reason">Reason</string>
+<string name="save_blocked_date">Save blocked date</string>
+<string name="error_invalid_block_dates">The last blocked date must be the same as or after the first date.</string>
+<string name="error_block_booking_overlap">These dates overlap an active booking for this property.</string>
+<string name="error_block_overlap">These dates overlap another blocked period for this property.</string>
 </resources>

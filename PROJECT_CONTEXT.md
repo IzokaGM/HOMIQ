@@ -478,16 +478,27 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Cancel booking without deleting history
 - [x] Booking source tracking
 - [x] Unit tests for half-open date overlap rules
-- [x] Confirm Phase 3 files build successfully after repository upload
+- [ ] Confirm Phase 3 files build successfully after repository upload
 
 ### Phase 4: Calendar
 
-- [ ] Monthly calendar connected to data
-- [ ] Multi-property availability
-- [ ] Booking colour/state rules
-- [ ] Block date
-- [ ] Tap date to create booking
-- [ ] Tap booking to open details
+- [x] Monthly calendar connected to Room data
+- [x] Previous and next month navigation
+- [x] Jump back to today
+- [x] All-properties availability view
+- [x] Single-property calendar filter
+- [x] Booking and blocked-date indicators
+- [x] Booking status colour/state rules in selected-date agenda
+- [x] Selected-date agenda
+- [x] Tap booking to open details
+- [x] Create booking from selected calendar date
+- [x] Prefill selected property for calendar booking
+- [x] Block Date form
+- [x] Block Date collision validation against bookings
+- [x] Block Date collision validation against other blocked periods
+- [x] Global Block Date quick action connected
+- [x] Calendar date-range unit tests
+- [x] Confirm Phase 4 files build successfully after repository upload
 
 ### Phase 5: Payments and deposits
 
@@ -589,28 +600,39 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 3 files are uploaded:
+Expected repository state after Phase 4 files are uploaded:
 
-- Phase 1 product shell is included in this package to repair repositories where the earlier shell was not applied.
-- Room local database version 1 remains the source of truth.
-- Owner can add and edit homestay properties.
-- Properties can be active or inactive.
-- Owner can create a real manual booking from the global add action.
-- Booking form stores property, guest, phone, dates, source, total and notes.
-- Booking validation rejects invalid date ranges and invalid money input.
-- Active booking overlaps are rejected before save.
-- Blocked-date overlaps are also rejected before save.
-- Check-out day is exclusive, so same-day turnover is allowed.
-- Bookings tab reads real local Room data.
-- Booking details support edit and cancel.
-- Cancellation preserves booking history and releases its dates.
-- Booking sources are persisted for later analytics.
-- Payment, deposit and expense UI remain intentionally deferred.
-- Calendar still uses the Phase 1 visual shell and will become data-driven in Phase 4.
+- Product shell, Room database, Properties and Bookings remain functional.
+- Calendar reads real bookings and blocked dates from Room.
+- Owner can move between months and return to today.
+- Calendar can show all homestays together or filter one property.
+- Booked and blocked dates are visibly distinguished.
+- Selecting a date shows its booking/block agenda.
+- Tapping a booking from Calendar opens Booking Details.
+- New Booking can be launched from a selected calendar date with date and optional property prefilled.
+- Block Date is fully functional from Calendar and global quick add.
+- Blocked periods cannot overlap active bookings or another blocked period.
+- Calendar and booking ranges continue to use check-out/end-exclusive rules internally.
+- Payment, deposit and expense UI remain deferred to later phases.
+- Home financial cards are still zero-state until transaction phases are implemented.
 - No account, Drive, or cloud sync code is implemented yet.
-- Next development task after a green Phase 3 build is Phase 4: Calendar.
+- Next development task after a green Phase 4 build is Phase 5: Payments and Deposits.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 4
+
+- Connected Calendar to live Room booking and blocked-date data.
+- Added month navigation and today shortcut.
+- Added portfolio and per-property availability filters.
+- Added booked and blocked date indicators.
+- Added selected-date agenda and booking navigation.
+- Added New Booking prefill from Calendar.
+- Added functional Block Date flow and validation.
+- Connected global Block Date quick action.
+- Added `CalendarRules` tests for half-open date occupancy.
+- Added `docs/CALENDAR_FLOW.md`.
+- Added no new external dependency in this phase.
 
 ### 31 August 2026, Phase 3
 

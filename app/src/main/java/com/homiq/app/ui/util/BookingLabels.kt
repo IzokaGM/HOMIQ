@@ -5,6 +5,7 @@ import com.homiq.app.R
 import com.homiq.app.data.model.BookingSource
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.domain.BookingSaveIssue
+import com.homiq.app.domain.BlockedDateSaveIssue
 import com.homiq.app.domain.PropertySaveIssue
 
 @StringRes
@@ -43,4 +44,19 @@ fun BookingSaveIssue.messageRes(): Int = when (this) {
 fun PropertySaveIssue.messageRes(): Int = when (this) {
     PropertySaveIssue.NAME_REQUIRED -> R.string.error_property_name_required
     PropertySaveIssue.INVALID_RATE -> R.string.error_invalid_rate
+}
+
+
+@StringRes
+fun BlockedDateSaveIssue.messageRes(): Int = when (this) {
+    BlockedDateSaveIssue.PROPERTY_REQUIRED ->
+        R.string.error_property_required
+    BlockedDateSaveIssue.PROPERTY_NOT_FOUND ->
+        R.string.error_property_not_found
+    BlockedDateSaveIssue.INVALID_DATES ->
+        R.string.error_invalid_block_dates
+    BlockedDateSaveIssue.BOOKING_OVERLAP ->
+        R.string.error_block_booking_overlap
+    BlockedDateSaveIssue.BLOCKED_DATE_OVERLAP ->
+        R.string.error_block_overlap
 }

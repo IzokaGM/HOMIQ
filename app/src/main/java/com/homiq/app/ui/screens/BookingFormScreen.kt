@@ -44,6 +44,8 @@ fun BookingFormScreen(
     onSaved: (String) -> Unit,
     onNeedProperty: () -> Unit,
     modifier: Modifier = Modifier,
+    initialCheckInEpochDay: Long? = null,
+    initialPropertyId: String? = null,
 ) {
     val bookings by viewModel.bookingList.collectAsStateWithLifecycle()
     val properties by viewModel.propertyList.collectAsStateWithLifecycle()
@@ -55,16 +57,27 @@ fun BookingFormScreen(
         }
     }
 
-    var propertyId by remember(bookingId) { mutableStateOf("") }
+    var propertyId by remember(
+        bookingId,
+        initialPropertyId,
+    ) {
+        mutableStateOf(initialPropertyId.orEmpty())
+    }
     var guestName by remember(bookingId) { mutableStateOf("") }
     var guestPhone by remember(bookingId) { mutableStateOf("") }
-    var checkIn by remember(bookingId) {
-        mutableLongStateOf(LocalDate.now().toEpochDay())
+    val defaultCheckIn = initialCheckInEpochDay
+        ?: LocalDate.now().toEpochDay()
+    var checkIn by remember(
+        bookingId,
+        initialCheckInEpochDay,
+    ) {
+        mutableLongStateOf(defaultCheckIn)
     }
-    var checkOut by remember(bookingId) {
-        mutableLongStateOf(
-            LocalDate.now().plusDays(1).toEpochDay(),
-        )
+    var checkOut by remember(
+        bookingId,
+        initialCheckInEpochDay,
+    ) {
+        mutableLongStateOf(defaultCheckIn + 1L)
     }
     var source by remember(bookingId) {
         mutableStateOf(BookingSource.WHATSAPP)

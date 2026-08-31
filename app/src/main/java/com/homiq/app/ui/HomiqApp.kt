@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homiq.app.HomiqApplication
 import com.homiq.app.R
+import com.homiq.app.ui.screens.BlockDateFormScreen
 import com.homiq.app.ui.screens.BookingDetailScreen
 import com.homiq.app.ui.screens.BookingFormScreen
 import com.homiq.app.ui.screens.BookingsScreen
@@ -55,7 +56,9 @@ import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
+import com.homiq.app.ui.viewmodel.BlockedDateViewModel
 import com.homiq.app.ui.viewmodel.BookingViewModel
+import com.homiq.app.ui.viewmodel.CalendarViewModel
 import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
 import com.homiq.app.ui.viewmodel.PropertyViewModel
 import kotlinx.coroutines.launch
@@ -77,6 +80,7 @@ private enum class HomiqRoute {
     PROPERTY_FORM,
     BOOKING_FORM,
     BOOKING_DETAIL,
+    BLOCK_DATE_FORM,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,10 +91,17 @@ fun HomiqApp() {
     val factory = remember(application) {
         HomiqViewModelFactory(application.container)
     }
+
     val propertyViewModel: PropertyViewModel = viewModel(
         factory = factory,
     )
     val bookingViewModel: BookingViewModel = viewModel(
+        factory = factory,
+    )
+    val calendarViewModel: CalendarViewModel = viewModel(
+        factory = factory,
+    )
+    val blockedDateViewModel: BlockedDateViewModel = viewModel(
         factory = factory,
     )
 
@@ -103,7 +114,15 @@ fun HomiqApp() {
     var routeId by rememberSaveable {
         mutableStateOf<String?>(null)
     }
-    var showQuickAdd by rememberSaveable { mutableStateOf(false) }
+    var routeEpochDay by rememberSaveable {
+        mutableStateOf<Long?>(null)
+    }
+    var routePropertyId by rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
+    var showQuickAdd by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     val selectedDestination = remember(destinationName) {
         HomiqDestination.entries.firstOrNull {
@@ -116,7 +135,9 @@ fun HomiqApp() {
         } ?: HomiqRoute.MAIN
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
     val scope = rememberCoroutineScope()
     val unavailableMessage = stringResource(
         R.string.feature_next_phase,
@@ -125,12 +146,21 @@ fun HomiqApp() {
     fun navigate(
         newRoute: HomiqRoute,
         id: String? = null,
+        epochDay: Long? = null,
+        propertyId: String? = null,
     ) {
         routeName = newRoute.name
         routeId = id
+        routeEpochDay = epochDay
+        routePropertyId = propertyId
     }
 
-    fun goMain() {
+    fun goMain(
+        destination: HomiqDestination? = null,
+    ) {
+        destination?.let {
+            destinationName = it.name
+        }
         navigate(HomiqRoute.MAIN)
     }
 
@@ -138,18 +168,27 @@ fun HomiqApp() {
         when (route) {
             HomiqRoute.PROPERTY_FORM ->
                 navigate(HomiqRoute.PROPERTIES)
+
             HomiqRoute.BOOKING_FORM -> {
                 if (routeId != null) {
                     navigate(
                         HomiqRoute.BOOKING_DETAIL,
-                        routeId,
+                        id = routeId,
                     )
                 } else {
-                    goMain()
+                    goMain(HomiqDestination.Calendar)
                 }
             }
-            HomiqRoute.BOOKING_DETAIL -> goMain()
-            HomiqRoute.PROPERTIES -> goMain()
+
+            HomiqRoute.BOOKING_DETAIL ->
+                goMain(HomiqDestination.Bookings)
+
+            HomiqRoute.BLOCK_DATE_FORM ->
+                goMain(HomiqDestination.Calendar)
+
+            HomiqRoute.PROPERTIES ->
+                goMain(HomiqDestination.More)
+
             HomiqRoute.MAIN -> Unit
         }
     }
@@ -206,22 +245,48 @@ fun HomiqApp() {
                 HomiqDestination.Home -> HomeScreen(
                     modifier = Modifier.padding(innerPadding),
                 )
-                HomiqDestination.Calendar -> CalendarScreen(
-                    modifier = Modifier.padding(innerPadding),
-                )
+
+                HomiqDestination.Calendar ->
+                    CalendarScreen(
+                        viewModel = calendarViewModel,
+                        onBookingClick = {
+                            navigate(
+                                HomiqRoute.BOOKING_DETAIL,
+                                id = it,
+                            )
+                        },
+                        onNewBooking = { day, propertyId ->
+                            navigate(
+                                HomiqRoute.BOOKING_FORM,
+                                epochDay = day,
+                                propertyId = propertyId,
+                            )
+                        },
+                        onBlockDate = { day, propertyId ->
+                            navigate(
+                                HomiqRoute.BLOCK_DATE_FORM,
+                                epochDay = day,
+                                propertyId = propertyId,
+                            )
+                        },
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
                 HomiqDestination.Bookings -> BookingsScreen(
                     viewModel = bookingViewModel,
                     onBookingClick = {
                         navigate(
                             HomiqRoute.BOOKING_DETAIL,
-                            it,
+                            id = it,
                         )
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
+
                 HomiqDestination.Money -> MoneyScreen(
                     modifier = Modifier.padding(innerPadding),
                 )
+
                 HomiqDestination.More -> MoreScreen(
                     onPropertiesClick = {
                         navigate(HomiqRoute.PROPERTIES)
@@ -245,7 +310,7 @@ fun HomiqApp() {
                     onPropertyClick = {
                         navigate(
                             HomiqRoute.PROPERTY_FORM,
-                            it,
+                            id = it,
                         )
                     },
                     modifier = Modifier.padding(innerPadding),
@@ -264,17 +329,14 @@ fun HomiqApp() {
                     bookingId = routeId,
                     viewModel = bookingViewModel,
                     onSaved = {
-                        destinationName =
-                            HomiqDestination.Bookings.name
-                        navigate(
-                            HomiqRoute.BOOKING_DETAIL,
-                            it,
-                        )
+                        goMain(HomiqDestination.Calendar)
                     },
                     onNeedProperty = {
                         navigate(HomiqRoute.PROPERTY_FORM)
                     },
                     modifier = Modifier.padding(innerPadding),
+                    initialCheckInEpochDay = routeEpochDay,
+                    initialPropertyId = routePropertyId,
                 )
 
                 HomiqRoute.BOOKING_DETAIL -> {
@@ -286,13 +348,13 @@ fun HomiqApp() {
                             onEdit = {
                                 navigate(
                                     HomiqRoute.BOOKING_FORM,
-                                    id,
+                                    id = id,
                                 )
                             },
                             onCancelled = {
-                                destinationName =
-                                    HomiqDestination.Bookings.name
-                                goMain()
+                                goMain(
+                                    HomiqDestination.Calendar,
+                                )
                             },
                             modifier = Modifier.padding(
                                 innerPadding,
@@ -301,6 +363,20 @@ fun HomiqApp() {
                     }
                 }
 
+                HomiqRoute.BLOCK_DATE_FORM ->
+                    BlockDateFormScreen(
+                        viewModel = blockedDateViewModel,
+                        onSaved = {
+                            goMain(HomiqDestination.Calendar)
+                        },
+                        onNeedProperty = {
+                            navigate(HomiqRoute.PROPERTY_FORM)
+                        },
+                        modifier = Modifier.padding(innerPadding),
+                        initialStartEpochDay = routeEpochDay,
+                        initialPropertyId = routePropertyId,
+                    )
+
                 HomiqRoute.MAIN -> Unit
             }
         }
@@ -308,7 +384,9 @@ fun HomiqApp() {
 
     if (showQuickAdd) {
         ModalBottomSheet(
-            onDismissRequest = { showQuickAdd = false },
+            onDismissRequest = {
+                showQuickAdd = false
+            },
         ) {
             Column(
                 modifier = Modifier
@@ -334,7 +412,9 @@ fun HomiqApp() {
                         navigate(HomiqRoute.BOOKING_FORM)
                     },
                 )
+
                 HorizontalDivider()
+
                 QuickActionRow(
                     icon = Icons.Outlined.Payments,
                     title = stringResource(
@@ -349,7 +429,9 @@ fun HomiqApp() {
                         }
                     },
                 )
+
                 HorizontalDivider()
+
                 QuickActionRow(
                     icon = Icons.Outlined.ReceiptLong,
                     title = stringResource(R.string.add_expense),
@@ -362,17 +444,15 @@ fun HomiqApp() {
                         }
                     },
                 )
+
                 HorizontalDivider()
+
                 QuickActionRow(
                     icon = Icons.Outlined.Block,
                     title = stringResource(R.string.block_date),
                     onClick = {
                         showQuickAdd = false
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                unavailableMessage,
-                            )
-                        }
+                        navigate(HomiqRoute.BLOCK_DATE_FORM)
                     },
                 )
             }
