@@ -18,4 +18,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        val application =
+            application as HomiqApplication
+        application.container
+            .syncService
+            .onAppForeground()
+    }
 }

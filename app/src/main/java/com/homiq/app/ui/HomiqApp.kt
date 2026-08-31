@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homiq.app.HomiqApplication
 import com.homiq.app.R
@@ -61,6 +62,7 @@ import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
 import com.homiq.app.ui.screens.ReportsScreen
+import com.homiq.app.ui.screens.SyncScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
 import com.homiq.app.ui.viewmodel.BackupViewModel
 import com.homiq.app.ui.viewmodel.BlockedDateViewModel
@@ -72,6 +74,7 @@ import com.homiq.app.ui.viewmodel.FinanceViewModel
 import com.homiq.app.ui.viewmodel.MoneyViewModel
 import com.homiq.app.ui.viewmodel.PropertyViewModel
 import com.homiq.app.ui.viewmodel.ReportsViewModel
+import com.homiq.app.ui.viewmodel.SyncViewModel
 import kotlinx.coroutines.launch
 
 private enum class HomiqDestination(
@@ -98,6 +101,7 @@ private enum class HomiqRoute {
     EXPENSE_FORM,
     REPORTS,
     BACKUP,
+    SYNC,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,6 +140,11 @@ fun HomiqApp() {
     val backupViewModel: BackupViewModel = viewModel(
         factory = factory,
     )
+    val syncViewModel: SyncViewModel = viewModel(
+        factory = factory,
+    )
+    val syncUiState by syncViewModel.state
+        .collectAsStateWithLifecycle()
 
     var destinationName by rememberSaveable {
         mutableStateOf(HomiqDestination.Home.name)
@@ -240,6 +249,9 @@ fun HomiqApp() {
                 goMain(HomiqDestination.Home)
 
             HomiqRoute.BACKUP ->
+                goMain(HomiqDestination.More)
+
+            HomiqRoute.SYNC ->
                 goMain(HomiqDestination.More)
 
             HomiqRoute.PROPERTIES ->
@@ -366,6 +378,11 @@ fun HomiqApp() {
                     },
                     onBackupClick = {
                         navigate(HomiqRoute.BACKUP)
+                    },
+                    syncEnabled =
+                        syncUiState.runtime.enabled,
+                    onSyncClick = {
+                        navigate(HomiqRoute.SYNC)
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -537,6 +554,13 @@ fun HomiqApp() {
                 HomiqRoute.BACKUP ->
                     BackupScreen(
                         viewModel = backupViewModel,
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
+
+                HomiqRoute.SYNC ->
+                    SyncScreen(
+                        viewModel = syncViewModel,
                         modifier = Modifier.padding(innerPadding),
                     )
 

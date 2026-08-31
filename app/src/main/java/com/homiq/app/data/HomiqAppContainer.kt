@@ -2,6 +2,12 @@ package com.homiq.app.data
 
 import android.content.Context
 import com.homiq.app.data.backup.HomiqBackupService
+import com.homiq.app.data.sync.GoogleDriveAuthorization
+import com.homiq.app.data.sync.GoogleDriveRestClient
+import com.homiq.app.data.sync.HomiqSyncEngine
+import com.homiq.app.data.sync.HomiqSyncService
+import com.homiq.app.data.sync.SyncChangeSignal
+import com.homiq.app.data.sync.SyncPreferences
 import com.homiq.app.data.local.HomiqDatabase
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
@@ -23,34 +29,77 @@ class HomiqAppContainer(
         HomiqDatabase.create(context)
     }
 
+    val syncPreferences: SyncPreferences by lazy {
+        SyncPreferences(context)
+    }
+
+    val syncChanges: SyncChangeSignal by lazy {
+        SyncChangeSignal()
+    }
+
     val properties: PropertyRepository by lazy {
-        RoomPropertyRepository(database.propertyDao())
+        RoomPropertyRepository(
+            dao = database.propertyDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val bookings: BookingRepository by lazy {
-        RoomBookingRepository(database.bookingDao())
+        RoomBookingRepository(
+            dao = database.bookingDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val payments: PaymentRepository by lazy {
-        RoomPaymentRepository(database.paymentDao())
+        RoomPaymentRepository(
+            dao = database.paymentDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val deposits: DepositRepository by lazy {
-        RoomDepositRepository(database.depositDao())
+        RoomDepositRepository(
+            dao = database.depositDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val expenses: ExpenseRepository by lazy {
-        RoomExpenseRepository(database.expenseDao())
+        RoomExpenseRepository(
+            dao = database.expenseDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val blockedDates: BlockedDateRepository by lazy {
-        RoomBlockedDateRepository(database.blockedDateDao())
+        RoomBlockedDateRepository(
+            dao = database.blockedDateDao(),
+            onChanged = syncChanges::notifyChanged,
+        )
     }
 
     val backupService: HomiqBackupService by lazy {
         HomiqBackupService(
             context = context,
             database = database,
+        )
+    }
+
+    val syncService: HomiqSyncService by lazy {
+        HomiqSyncService(
+            authorization =
+                GoogleDriveAuthorization(context),
+            engine =
+                HomiqSyncEngine(
+                    database = database,
+                    drive =
+                        GoogleDriveRestClient(),
+                    preferences =
+                        syncPreferences,
+                ),
+            preferences = syncPreferences,
+            changes = syncChanges,
         )
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
@@ -35,6 +36,8 @@ import com.homiq.app.ui.components.ScreenHeader
 fun MoreScreen(
     onPropertiesClick: () -> Unit,
     onBackupClick: () -> Unit,
+    syncEnabled: Boolean,
+    onSyncClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -67,8 +70,21 @@ fun MoreScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Person,
                     title = stringResource(R.string.account),
-                    body = stringResource(R.string.not_signed_in),
-                    trailing = stringResource(R.string.local_only),
+                    body = stringResource(
+                        if (syncEnabled) {
+                            R.string.sync_connected_body_short
+                        } else {
+                            R.string.sync_not_connected_body_short
+                        },
+                    ),
+                    trailing = stringResource(
+                        if (syncEnabled) {
+                            R.string.sync_connected
+                        } else {
+                            R.string.optional
+                        },
+                    ),
+                    onClick = onSyncClick,
                 )
             }
         }
@@ -87,6 +103,13 @@ fun MoreScreen(
                     title = stringResource(R.string.backup_restore),
                     body = stringResource(R.string.backup_restore_body),
                     onClick = onBackupClick,
+                )
+                HorizontalDivider()
+                SettingsRow(
+                    icon = Icons.Outlined.CloudSync,
+                    title = stringResource(R.string.sync_title),
+                    body = stringResource(R.string.sync_more_body),
+                    onClick = onSyncClick,
                 )
                 HorizontalDivider()
                 SettingsRow(

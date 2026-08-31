@@ -101,6 +101,13 @@ class HomiqViewModelFactory(
                     service = container.backupService,
                 ) as T
 
+
+            modelClass.isAssignableFrom(SyncViewModel::class.java) ->
+                SyncViewModel(
+                    service = container.syncService,
+                    preferences = container.syncPreferences,
+                ) as T
+
             else -> error(
                 "Unknown HOMIQ ViewModel: ${modelClass.name}",
             )

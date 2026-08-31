@@ -581,20 +581,32 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Last successful backup timestamp
 - [x] Last successful restore timestamp
 - [x] Backup codec round-trip unit test
-- [x] Confirm Phase 8 files build successfully after repository upload
+- [ ] Confirm Phase 8 files build successfully after repository upload
 
 ### Phase 9: Optional multi-device sync
 
-- [ ] Select free-cost-compatible sync backend
-- [ ] Account data ownership rules
-- [ ] Sync metadata
-- [ ] Upload pending local changes
-- [ ] Download remote changes
-- [ ] Offline queue
-- [ ] Conflict strategy
-- [ ] Safe deletion sync
-- [ ] Sync status UI
-- [ ] Two-device testing
+- [x] Google Drive selected as the HOMIQ sync layer
+- [x] Narrow drive.appdata OAuth scope
+- [x] Google Identity AuthorizationClient integration
+- [x] Private Drive appDataFolder storage
+- [x] Stable per-installation device UUID
+- [x] One sync file per HOMIQ installation
+- [x] Local Room remains primary and fully offline-capable
+- [x] Sync all six business tables
+- [x] Tombstone propagation
+- [x] Deterministic revision-based merge
+- [x] Same-revision conflict detection/counting
+- [x] Deposit semantic merge by bookingId
+- [x] Transactional Room application of merged state
+- [x] Sync on app foreground
+- [x] Debounced sync after local writes/deletes
+- [x] Manual Sync Now
+- [x] Google authorization re-consent handling
+- [x] Disconnect/revoke Google Drive access
+- [x] Sync status UI under More
+- [x] Google Cloud/OAuth setup documentation
+- [x] Sync merge unit tests
+- [x] Confirm Phase 9 files build successfully after repository upload
 
 ### Phase 10: Security and polish
 
@@ -642,25 +654,55 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 8 files are uploaded:
+Expected repository state after Phase 9 files are uploaded:
 
-- All Phase 1-7 owner workflows remain local-first and functional.
-- Backup & Restore is now functional from More.
-- HOMIQ creates a versioned portable JSON backup instead of copying raw SQLite files.
-- All Property, Booking, Payment, Deposit, Expense and Blocked Date records are backed up.
-- Stable UUIDs, timestamps, revisions and tombstones are preserved for future sync.
-- Android's system file picker lets the owner save to local/external storage or an installed cloud DocumentsProvider such as Google Drive.
-- Google Drive backup does not require a HOMIQ backend or Drive password.
-- Restore validates format, schema compatibility and entity relationships before changing live data.
-- Restore requires explicit owner confirmation after showing backup statistics.
-- Full restore runs in one Room transaction and rolls back on failure.
-- Last successful backup and restore times are shown locally.
-- No database migration and no external dependency are required for Phase 8.
-- Live two-device synchronization is intentionally separate and remains Phase 9.
-- App lock and final polish remain Phase 10.
-- Next development task after a green Phase 8 build is Phase 9: Multi-device Sync.
+- All Phase 1-8 local-first workflows remain functional.
+- Backup & Restore remains a separate disaster-recovery feature.
+- Optional Google Drive current-state sync is implemented.
+- Room remains the primary runtime database and all business workflows still work offline.
+- Sync requests only the narrow Google Drive appDataFolder scope.
+- Every installation gets a stable local device UUID.
+- Every device writes only its own hidden Drive sync snapshot to avoid direct file-write races.
+- Sync merges Property, Booking, Payment, Deposit, Expense and Blocked Date rows including tombstones.
+- Higher revision wins; equal revision uses updated time and then a deterministic payload tie-break.
+- Same-revision divergent records are counted as concurrent conflicts.
+- Deposit is merged by bookingId to preserve the one-deposit-per-booking Room constraint.
+- The merged state is applied with Room upserts inside one transaction.
+- Sync triggers on app foreground, after successful local repository writes/deletes, and manual Sync Now.
+- Drive authorization uses Google Identity AuthorizationClient.
+- Disconnect revokes the requested Drive app-data access.
+- No HOMIQ backend, webhook or paid sync server is required.
+- Runtime Google authorization requires Google Cloud Drive API + Android OAuth configuration for package `com.homiq.app` and the APK signing SHA-1.
+- A stable signing certificate is required for reliable OAuth testing/release.
+- No database migration is required for Phase 9.
+- Phase 10 is Security and Polish.
+- Next development task after a green Phase 9 build is Phase 10: Security and Polish.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 9
+
+- Locked Google Drive appDataFolder as the optional multi-device sync layer.
+- Added Google Identity AuthorizationClient with drive.appdata scope.
+- Added stable per-installation device identity.
+- Added one hidden Drive current-state snapshot per device.
+- Added Drive REST list/download/create/update implementation.
+- Added deterministic six-table sync merge and tombstone propagation.
+- Added same-revision conflict counting.
+- Added bookingId-aware deposit merge.
+- Added transactional Room application of merged state.
+- Added app-foreground automatic sync.
+- Added debounced sync after successful local repository changes.
+- Added manual Sync Now and Google re-authorization handling.
+- Added Drive access disconnect/revoke.
+- Added More -> Google Drive Sync UI and status.
+- Added `docs/SYNC_FLOW.md`.
+- Added `docs/GOOGLE_DRIVE_SYNC_SETUP.md`.
+- Added sync merger unit tests.
+- Added Google Play services Auth 21.6.0.
+- Drive REST calls use platform HttpURLConnection, avoiding an unnecessary networking dependency.
+- Added INTERNET permission.
+- Added no database migration and no HOMIQ backend dependency.
 
 ### 31 August 2026, Phase 8
 

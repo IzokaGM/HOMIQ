@@ -50,6 +50,7 @@ private fun BlockedDateEntity.nextRevision(timestamp: Long) = copy(
 
 class RoomPropertyRepository(
     private val dao: PropertyDao,
+    private val onChanged: () -> Unit = {},
 ) : PropertyRepository {
     override fun observeAll(): Flow<List<PropertyEntity>> = dao.observeAll()
 
@@ -59,15 +60,18 @@ class RoomPropertyRepository(
 
     override suspend fun save(entity: PropertyEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
 
 class RoomBookingRepository(
     private val dao: BookingDao,
+    private val onChanged: () -> Unit = {},
 ) : BookingRepository {
     override fun observeAll(): Flow<List<BookingEntity>> = dao.observeAll()
 
@@ -97,15 +101,18 @@ class RoomBookingRepository(
 
     override suspend fun save(entity: BookingEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
 
 class RoomPaymentRepository(
     private val dao: PaymentDao,
+    private val onChanged: () -> Unit = {},
 ) : PaymentRepository {
     override fun observeRevenueInRangeSen(
         startEpochDay: Long,
@@ -138,15 +145,18 @@ class RoomPaymentRepository(
 
     override suspend fun save(entity: PaymentEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
 
 class RoomDepositRepository(
     private val dao: DepositDao,
+    private val onChanged: () -> Unit = {},
 ) : DepositRepository {
     override fun observeForBooking(bookingId: String): Flow<DepositEntity?> =
         dao.observeForBooking(bookingId)
@@ -155,15 +165,18 @@ class RoomDepositRepository(
 
     override suspend fun save(entity: DepositEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
 
 class RoomExpenseRepository(
     private val dao: ExpenseDao,
+    private val onChanged: () -> Unit = {},
 ) : ExpenseRepository {
     override fun observeByPropertyInRange(
         startEpochDay: Long,
@@ -192,15 +205,18 @@ class RoomExpenseRepository(
 
     override suspend fun save(entity: ExpenseEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
 
 class RoomBlockedDateRepository(
     private val dao: BlockedDateDao,
+    private val onChanged: () -> Unit = {},
 ) : BlockedDateRepository {
     override fun observeInRange(
         rangeStart: Long,
@@ -225,9 +241,11 @@ class RoomBlockedDateRepository(
 
     override suspend fun save(entity: BlockedDateEntity) {
         dao.upsert(entity.nextRevision(now()))
+        onChanged()
     }
 
     override suspend fun delete(id: String) {
         dao.softDelete(id, now())
+        onChanged()
     }
 }
