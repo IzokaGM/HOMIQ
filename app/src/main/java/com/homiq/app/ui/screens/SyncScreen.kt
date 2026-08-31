@@ -24,10 +24,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
@@ -35,6 +39,7 @@ import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatBackupTime
 import com.homiq.app.ui.util.messageRes
+import com.homiq.app.ui.util.signingCertificateSha1
 import com.homiq.app.ui.viewmodel.SyncUiMessage
 import com.homiq.app.ui.viewmodel.SyncViewModel
 
@@ -47,6 +52,11 @@ fun SyncScreen(
         .collectAsStateWithLifecycle()
     val locale =
         LocalConfiguration.current.locales[0]
+    val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    val signingSha1 = remember(context) {
+        signingCertificateSha1(context)
+    }
 
     val authorizationLauncher =
         rememberLauncherForActivityResult(
@@ -282,6 +292,29 @@ fun SyncScreen(
                                 start = 8.dp,
                             ),
                     )
+                }
+            }
+        }
+
+        if (!state.runtime.enabled && signingSha1 != null) {
+            item {
+                InfoCard(
+                    title = stringResource(R.string.sync_oauth_setup_title),
+                    body = stringResource(
+                        R.string.sync_oauth_setup_body,
+                        context.packageName,
+                        signingSha1,
+                    ),
+                )
+            }
+            item {
+                OutlinedButton(
+                    onClick = {
+                        clipboard.setText(AnnotatedString(signingSha1))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.copy_sha1))
                 }
             }
         }

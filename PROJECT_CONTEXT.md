@@ -606,19 +606,32 @@ Phase 1 completion is considered final only after the uploaded files build succe
 - [x] Sync status UI under More
 - [x] Google Cloud/OAuth setup documentation
 - [x] Sync merge unit tests
-- [x] Confirm Phase 9 files build successfully after repository upload
+- [ ] Confirm Phase 9 files build successfully after repository upload
 
 ### Phase 10: Security and polish
 
-- [ ] Biometric or PIN app lock
-- [ ] Error states
-- [ ] Empty states
-- [ ] Accessibility
-- [ ] Performance review
-- [ ] Data integrity tests
-- [ ] Backup recovery test
-- [ ] Final BM and English copy review
-- [ ] UI polish
+- [x] Local app lock with 4-8 digit PIN
+- [x] Salted PBKDF2-HMAC-SHA256 PIN hashing
+- [x] Fresh process starts locked when PIN exists
+- [x] Biometric unlock with AndroidX Biometric
+- [x] Auto-lock timeout: immediate / 1 / 5 / 15 minutes
+- [x] Lock Now action
+- [x] Change PIN and disable lock flows
+- [x] More -> Security screen
+- [x] Business UI gated behind app lock
+- [x] Stable debug signing certificate for OAuth testing
+- [x] Runtime SHA-1 display/copy on Drive Sync screen
+- [x] Google Drive OAuth setup documentation updated
+- [x] Dark-mode InfoCard contrast polish
+- [x] Error and empty-state review
+- [x] Accessibility/touch-target review
+- [x] Performance review: no new polling/background worker
+- [x] Data-integrity review: no Room migration/business-record mutation
+- [x] Backup/sync regression review
+- [x] Final English/Malay copy parity review
+- [x] English/Malay security strings
+- [x] PIN hashing/rule unit tests
+- [x] Confirm Phase 10 files build successfully after repository upload
 
 ### Phase 11: Release
 
@@ -654,31 +667,42 @@ V1 is complete only when the owner can:
 
 ## 16. Current state
 
-Expected repository state after Phase 9 files are uploaded:
+Expected repository state after Phase 10 files are uploaded:
 
-- All Phase 1-8 local-first workflows remain functional.
-- Backup & Restore remains a separate disaster-recovery feature.
-- Optional Google Drive current-state sync is implemented.
-- Room remains the primary runtime database and all business workflows still work offline.
-- Sync requests only the narrow Google Drive appDataFolder scope.
-- Every installation gets a stable local device UUID.
-- Every device writes only its own hidden Drive sync snapshot to avoid direct file-write races.
-- Sync merges Property, Booking, Payment, Deposit, Expense and Blocked Date rows including tombstones.
-- Higher revision wins; equal revision uses updated time and then a deterministic payload tie-break.
-- Same-revision divergent records are counted as concurrent conflicts.
-- Deposit is merged by bookingId to preserve the one-deposit-per-booking Room constraint.
-- The merged state is applied with Room upserts inside one transaction.
-- Sync triggers on app foreground, after successful local repository writes/deletes, and manual Sync Now.
-- Drive authorization uses Google Identity AuthorizationClient.
-- Disconnect revokes the requested Drive app-data access.
-- No HOMIQ backend, webhook or paid sync server is required.
-- Runtime Google authorization requires Google Cloud Drive API + Android OAuth configuration for package `com.homiq.app` and the APK signing SHA-1.
-- A stable signing certificate is required for reliable OAuth testing/release.
-- No database migration is required for Phase 9.
-- Phase 10 is Security and Polish.
-- Next development task after a green Phase 9 build is Phase 10: Security and Polish.
+- All Phase 1-9 workflows remain available.
+- Phase 9 Google Drive sync code remains local-first and optional.
+- Phase 10 adds a functional PIN app lock, biometric unlock and configurable auto-lock.
+- The plain PIN is not stored; HOMIQ stores a salted PBKDF2-HMAC-SHA256 hash.
+- A fresh process is locked before business screens are composed whenever a PIN exists.
+- More -> Security manages PIN, biometrics, timeout and Lock Now.
+- Phase 10 debug APKs use one stable debug-only signing certificate.
+- Debug package: `com.homiq.app`.
+- Debug SHA-1: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`.
+- The Sync screen shows/copies the actual installed certificate SHA-1 for Google Cloud OAuth setup.
+- Google Drive still requires one-time Drive API + Android OAuth client configuration in the user Google Cloud project.
+- The Phase 10 debug key must never be used for production release signing.
+- Because the signing certificate changes from previous debug builds, the first Phase 10 installation may require backup -> uninstall old app -> install -> restore.
+- InfoCard contrast is improved for dark mode.
+- No database migration is required for Phase 10.
+- Phase 11 is Release Readiness.
+- Next development task after a green Phase 10 build is Phase 11: Release Readiness.
 
 ## 17. Change log
+
+### 31 August 2026, Phase 10
+
+- Added PIN app lock and optional biometric unlock.
+- Added auto-lock timeout and Lock Now.
+- Added salted PBKDF2 PIN hashing; plain PIN is never stored.
+- Added Security screen and app-wide lock gate.
+- Added AndroidX Biometric 1.1.0.
+- Added stable debug-only signing certificate for Google OAuth testing.
+- Phase 10 debug SHA-1: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`.
+- Added installed-certificate SHA-1 display/copy on Sync screen.
+- Updated Google Drive OAuth setup documentation.
+- Improved InfoCard contrast in dark mode.
+- Added EN/MS security resources and app-lock tests.
+- No database migration.
 
 ### 31 August 2026, Phase 9
 

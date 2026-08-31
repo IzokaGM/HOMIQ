@@ -127,3 +127,17 @@ Phase 8 Backup & Restore is disaster recovery.
 Phase 9 Drive Sync is current-state convergence between HOMIQ installations.
 
 They are deliberately separate features.
+
+
+## Phase 10 stable debug OAuth identity
+
+Phase 10 now ships a dedicated debug-only certificate so GitHub debug APK fingerprints stop changing.
+
+For **debug testing**, create the Android OAuth client with:
+
+- Package: `com.homiq.app`
+- SHA-1: `5B:FC:0E:63:6E:F3:06:80:F3:BD:A1:5D:4B:B9:93:C4:22:B1:48:D9`
+
+The Sync screen also displays the certificate SHA-1 detected from the installed APK so it can be copied directly.
+
+Do not reuse the Phase 10 debug key as the production release key. Phase 11 will define release signing separately, and its release SHA-1 must also be registered in Google Cloud when production Drive authorization is tested.

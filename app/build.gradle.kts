@@ -19,6 +19,22 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("homiqDebug") {
+            // Dedicated DEBUG key only. Never use this key for release builds.
+            storeFile = file("homiq-debug.keystore")
+            storePassword = "homiq-debug"
+            keyAlias = "homiqdebug"
+            keyPassword = "homiq-debug"
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("homiqDebug")
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -53,6 +69,7 @@ dependencies {
 
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")

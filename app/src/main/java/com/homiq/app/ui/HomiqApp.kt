@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.homiq.app.HomiqApplication
 import com.homiq.app.R
+import com.homiq.app.ui.screens.AppLockScreen
 import com.homiq.app.ui.screens.BackupScreen
 import com.homiq.app.ui.screens.BlockDateFormScreen
 import com.homiq.app.ui.screens.BookingDetailScreen
@@ -62,8 +63,10 @@ import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.PropertiesScreen
 import com.homiq.app.ui.screens.ReportsScreen
+import com.homiq.app.ui.screens.SecurityScreen
 import com.homiq.app.ui.screens.SyncScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
+import com.homiq.app.ui.viewmodel.AppLockViewModel
 import com.homiq.app.ui.viewmodel.BackupViewModel
 import com.homiq.app.ui.viewmodel.BlockedDateViewModel
 import com.homiq.app.ui.viewmodel.BookingViewModel
@@ -102,6 +105,7 @@ private enum class HomiqRoute {
     REPORTS,
     BACKUP,
     SYNC,
+    SECURITY,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,6 +115,17 @@ fun HomiqApp() {
         as HomiqApplication
     val factory = remember(application) {
         HomiqViewModelFactory(application.container)
+    }
+
+    val appLockViewModel: AppLockViewModel = viewModel(
+        factory = factory,
+    )
+    val appLockState by appLockViewModel.state
+        .collectAsStateWithLifecycle()
+
+    if (appLockState.locked) {
+        AppLockScreen(viewModel = appLockViewModel)
+        return
     }
 
     val propertyViewModel: PropertyViewModel = viewModel(
@@ -254,6 +269,9 @@ fun HomiqApp() {
             HomiqRoute.SYNC ->
                 goMain(HomiqDestination.More)
 
+            HomiqRoute.SECURITY ->
+                goMain(HomiqDestination.More)
+
             HomiqRoute.PROPERTIES ->
                 goMain(HomiqDestination.More)
 
@@ -383,6 +401,10 @@ fun HomiqApp() {
                         syncUiState.runtime.enabled,
                     onSyncClick = {
                         navigate(HomiqRoute.SYNC)
+                    },
+                    appLockEnabled = appLockState.hasPin,
+                    onSecurityClick = {
+                        navigate(HomiqRoute.SECURITY)
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -561,6 +583,12 @@ fun HomiqApp() {
                 HomiqRoute.SYNC ->
                     SyncScreen(
                         viewModel = syncViewModel,
+                        modifier = Modifier.padding(innerPadding),
+                    )
+
+                HomiqRoute.SECURITY ->
+                    SecurityScreen(
+                        viewModel = appLockViewModel,
                         modifier = Modifier.padding(innerPadding),
                     )
 

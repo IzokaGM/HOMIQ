@@ -145,7 +145,7 @@ fun InfoCard(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -155,18 +155,18 @@ fun InfoCard(
             Icon(
                 imageVector = Icons.Outlined.Info,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 Text(
                     text = body,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }

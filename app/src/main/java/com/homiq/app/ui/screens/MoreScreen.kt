@@ -38,6 +38,8 @@ fun MoreScreen(
     onBackupClick: () -> Unit,
     syncEnabled: Boolean,
     onSyncClick: () -> Unit,
+    appLockEnabled: Boolean,
+    onSecurityClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -115,7 +117,15 @@ fun MoreScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Lock,
                     title = stringResource(R.string.security),
-                    body = stringResource(R.string.security_body),
+                    body = stringResource(
+                        if (appLockEnabled) {
+                            R.string.security_enabled_body
+                        } else {
+                            R.string.security_body
+                        },
+                    ),
+                    trailing = if (appLockEnabled) stringResource(R.string.on) else null,
+                    onClick = onSecurityClick,
                 )
             }
         }

@@ -2,6 +2,8 @@ package com.homiq.app.data
 
 import android.content.Context
 import com.homiq.app.data.backup.HomiqBackupService
+import com.homiq.app.data.security.AppLockPreferences
+import com.homiq.app.data.security.AppLockService
 import com.homiq.app.data.sync.GoogleDriveAuthorization
 import com.homiq.app.data.sync.GoogleDriveRestClient
 import com.homiq.app.data.sync.HomiqSyncEngine
@@ -27,6 +29,14 @@ class HomiqAppContainer(
 ) {
     val database: HomiqDatabase by lazy {
         HomiqDatabase.create(context)
+    }
+
+    val appLockPreferences: AppLockPreferences by lazy {
+        AppLockPreferences(context)
+    }
+
+    val appLockService: AppLockService by lazy {
+        AppLockService(appLockPreferences)
     }
 
     val syncPreferences: SyncPreferences by lazy {

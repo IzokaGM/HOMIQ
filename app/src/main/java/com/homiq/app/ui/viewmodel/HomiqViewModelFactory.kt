@@ -15,6 +15,11 @@ class HomiqViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
+            modelClass.isAssignableFrom(AppLockViewModel::class.java) ->
+                AppLockViewModel(
+                    service = container.appLockService,
+                ) as T
+
             modelClass.isAssignableFrom(PropertyViewModel::class.java) ->
                 PropertyViewModel(
                     properties = container.properties,

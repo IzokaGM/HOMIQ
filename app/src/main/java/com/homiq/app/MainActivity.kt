@@ -21,10 +21,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        val application =
+        val homiqApplication =
             application as HomiqApplication
-        application.container
-            .syncService
+        homiqApplication.container
+            .appLockService
             .onAppForeground()
+        if (!homiqApplication.container.appLockService.state.value.locked) {
+            homiqApplication.container
+                .syncService
+                .onAppForeground()
+        }
+    }
+
+    override fun onStop() {
+        if (!isChangingConfigurations) {
+            val homiqApplication =
+                application as HomiqApplication
+            homiqApplication.container
+                .appLockService
+                .onAppBackground()
+        }
+        super.onStop()
     }
 }
