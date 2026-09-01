@@ -13,25 +13,49 @@ concurrency:
 jobs:
   apply-build-release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
-      - name: Install Android 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Ensure Android SDK 36
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          test -x "$SDKMANAGER" || {
+            echo "sdkmanager not found."
+            exit 1
+          }
+
+          PACKAGES=()
+          [ -d "$ANDROID_HOME/platforms/android-36" ] || PACKAGES+=("platforms;android-36")
+          [ -d "$ANDROID_HOME/build-tools/36.0.0" ] || PACKAGES+=("build-tools;36.0.0")
+
+          if [ "${#PACKAGES[@]}" -gt 0 ]; then
+            yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+            "$SDKMANAGER" "${PACKAGES[@]}"
+          else
+            echo "Android SDK 36 already available."
+          fi
 
       - name: Find latest HOMIQ phase ZIP
         id: phase
@@ -39,7 +63,10 @@ jobs:
         run: |
           set -euo pipefail
           ZIP="$(find . -maxdepth 1 -type f -name 'HOMIQ-Phase-*.zip' -printf '%f\n' | sort -V | tail -n1)"
-          test -n "${ZIP:-}" || { echo "No HOMIQ-Phase-*.zip found."; exit 1; }
+          test -n "${ZIP:-}" || {
+            echo "No HOMIQ-Phase-*.zip found."
+            exit 1
+          }
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
           echo "Using $ZIP"
 
@@ -48,19 +75,29 @@ jobs:
         env:
           PHASE_ZIP: ${{ steps.phase.outputs.zip }}
         run: |
-          import os, pathlib, stat, zipfile
+          import os
+          import pathlib
+          import stat
+          import zipfile
+
           archive = pathlib.Path(os.environ["PHASE_ZIP"])
+
           with zipfile.ZipFile(archive) as z:
               for info in z.infolist():
                   name = info.filename.replace("\\", "/")
                   parts = pathlib.PurePosixPath(name).parts
+
                   if name.startswith("/") or ".." in parts:
                       raise SystemExit(f"Unsafe ZIP path: {name}")
+
                   if parts and parts[0] in {".git", ".github"}:
                       raise SystemExit(f"Phase ZIP may not modify {parts[0]}: {name}")
+
                   if stat.S_ISLNK(info.external_attr >> 16):
                       raise SystemExit(f"Symlink not allowed: {name}")
+
               z.extractall(".")
+
           pathlib.Path("UPLOAD_PATHS.txt").unlink(missing_ok=True)
 
       - name: Resolve next Homika version
@@ -69,7 +106,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          import os, re, subprocess
+          import os
+          import re
+          import subprocess
           from pathlib import Path
 
           gradle = Path("app/build.gradle.kts")
@@ -83,30 +122,47 @@ jobs:
               r'versionCode\s*=\s*System\.getenv\("HOMIKA_VERSION_CODE"\).*?\?:\s*(\d+)',
               text,
           )
+
           if not mn or not mc:
-              raise SystemExit("Could not read Homika default version from app/build.gradle.kts")
+              raise SystemExit(
+                  "Could not read Homika default version from app/build.gradle.kts"
+              )
 
           base_name = mn.group(1)
           base_code = int(mc.group(1))
           parts = base_name.split(".")
-          if len(parts) != 3 or not all(x.isdigit() for x in parts):
+
+          if len(parts) != 3 or not all(part.isdigit() for part in parts):
               raise SystemExit("Homika versionName must use MAJOR.MINOR.PATCH.")
 
           major, minor, patch = map(int, parts)
 
-          def exists(version):
-              return subprocess.run(
-                  ["gh", "release", "view", f"v{version}"],
-                  stdout=subprocess.DEVNULL,
-                  stderr=subprocess.DEVNULL,
-                  env=os.environ.copy(),
-              ).returncode == 0
+          releases = subprocess.check_output(
+              [
+                  "gh",
+                  "release",
+                  "list",
+                  "--limit",
+                  "100",
+                  "--json",
+                  "tagName",
+                  "--jq",
+                  ".[].tagName",
+              ],
+              text=True,
+              env=os.environ.copy(),
+          )
+          existing_tags = {
+              line.strip()
+              for line in releases.splitlines()
+              if line.strip()
+          }
 
           name = base_name
           code = base_code
           bumps = 0
 
-          while exists(name):
+          while f"v{name}" in existing_tags:
               patch += 1
               bumps += 1
               name = f"{major}.{minor}.{patch}"
@@ -114,15 +170,25 @@ jobs:
 
           if name != base_name:
               text = text[:mn.start(1)] + name + text[mn.end(1):]
+
               mc2 = re.search(
                   r'versionCode\s*=\s*System\.getenv\("HOMIKA_VERSION_CODE"\).*?\?:\s*(\d+)',
                   text,
               )
+              if not mc2:
+                  raise SystemExit("Could not update Homika versionCode.")
+
               text = text[:mc2.start(1)] + str(code) + text[mc2.end(1):]
               gradle.write_text(text, encoding="utf-8")
-              print(f"Auto-bumped {base_name} ({base_code}) -> {name} ({code})")
+              print(
+                  f"Auto-bumped {base_name} ({base_code}) "
+                  f"-> {name} ({code})"
+              )
 
-          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as out:
+          with Path(os.environ["GITHUB_OUTPUT"]).open(
+              "a",
+              encoding="utf-8",
+          ) as out:
               out.write(f"name={name}\n")
               out.write(f"code={code}\n")
 
@@ -138,6 +204,7 @@ jobs:
             echo "Missing HOMIKA_RELEASE_KEYSTORE_BASE64 secret."
             exit 1
           }
+
           printf '%s' "$HOMIKA_RELEASE_KEYSTORE_BASE64" \
             | base64 --decode \
             > "$RUNNER_TEMP/homika-release.jks"
@@ -157,8 +224,12 @@ jobs:
             echo "Missing HOMIKA_RELEASE_KEYSTORE_PASSWORD secret."
             exit 1
           }
+
           chmod +x gradlew
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew assembleRelease \
+            --build-cache \
+            --parallel \
+            --console=plain
 
       - name: Prepare and verify signed APK
         id: apk
@@ -168,8 +239,12 @@ jobs:
           VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           set -euo pipefail
+
           APK="$(find app/build/outputs/apk/release -type f -name '*.apk' | head -n1)"
-          test -n "${APK:-}" || { echo "Release APK not found."; exit 1; }
+          test -n "${APK:-}" || {
+            echo "Release APK not found."
+            exit 1
+          }
 
           OUT="Homika-v${VERSION_NAME}.apk"
           cp "$APK" "$OUT"
@@ -177,15 +252,18 @@ jobs:
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n1)"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
 
+          test -x "$AAPT"
+          test -x "$APKSIGNER"
+
           BADGING="$("$AAPT" dump badging "$OUT" | head -n1)"
           echo "$BADGING"
+
           echo "$BADGING" | grep -F "package: name='com.homiq.app'"
           echo "$BADGING" | grep -F "versionName='${VERSION_NAME}'"
           echo "$BADGING" | grep -F "versionCode='${VERSION_CODE}'"
 
           "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee apk-signature.txt
 
-          # apksigner prints lower-case SHA-1 without colons on current runners.
           EXPECTED_SHA1="9e835a83a68e2b5304f9ce2751cda472d0112ad1"
           ACTUAL_SHA1="$(
             sed -nE 's/^.*certificate SHA-1 digest:[[:space:]]*([0-9A-Fa-f:]+).*$/\1/p' apk-signature.txt \
@@ -207,9 +285,8 @@ jobs:
             exit 1
           fi
 
-          echo "Official Homika signing certificate verified."
-
           sha256sum "$OUT" > "${OUT}.sha256"
+
           echo "path=$OUT" >> "$GITHUB_OUTPUT"
           echo "sha256=${OUT}.sha256" >> "$GITHUB_OUTPUT"
 
@@ -221,15 +298,17 @@ jobs:
           VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           set -euo pipefail
+
           rm -f -- "$PHASE_ZIP"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A
+
           if ! git diff --cached --quiet; then
             git commit -m "chore: apply ${PHASE_ZIP} for Homika ${VERSION_NAME} (${VERSION_CODE})"
-            git push
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           else
             echo "Nothing to commit."
           fi
@@ -244,6 +323,7 @@ jobs:
           PHASE_ZIP: ${{ steps.phase.outputs.zip }}
         run: |
           set -euo pipefail
+
           gh release create "v${VERSION_NAME}" "$APK" "$SHA256" \
             --title "Homika v${VERSION_NAME}" \
             --notes "Homika ${VERSION_NAME}
@@ -251,12 +331,3 @@ jobs:
           Applied package: ${PHASE_ZIP}
 
           Signed with the official Homika release certificate."
-
-      - name: Upload signed APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Homika-v${{ steps.version.outputs.name }}
-          path: |
-            ${{ steps.apk.outputs.path }}
-            ${{ steps.apk.outputs.sha256 }}
-          if-no-files-found: error
