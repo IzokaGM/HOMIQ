@@ -13,8 +13,8 @@ android {
         applicationId = "com.homiq.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = System.getenv("HOMIKA_VERSION_CODE")?.toIntOrNull() ?: 10002
-        versionName = System.getenv("HOMIKA_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.2"
+        versionCode = System.getenv("HOMIKA_VERSION_CODE")?.toIntOrNull() ?: 10003
+        versionName = System.getenv("HOMIKA_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
