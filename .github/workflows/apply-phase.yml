@@ -184,8 +184,30 @@ jobs:
           echo "$BADGING" | grep -F "versionCode='${VERSION_CODE}'"
 
           "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee apk-signature.txt
-          EXPECTED_SHA1="9E:83:5A:83:A6:8E:2B:53:04:F9:CE:27:51:CD:A4:72:D0:11:2A:D1"
-          grep -F "Signer #1 certificate SHA-1 digest: ${EXPECTED_SHA1}" apk-signature.txt
+
+          # apksigner prints lower-case SHA-1 without colons on current runners.
+          EXPECTED_SHA1="9e835a83a68e2b5304f9ce2751cda472d0112ad1"
+          ACTUAL_SHA1="$(
+            sed -nE 's/^.*certificate SHA-1 digest:[[:space:]]*([0-9A-Fa-f:]+).*$/\1/p' apk-signature.txt \
+              | head -n1 \
+              | tr '[:upper:]' '[:lower:]' \
+              | tr -d ':'
+          )"
+
+          echo "Expected signer SHA-1: $EXPECTED_SHA1"
+          echo "Actual signer SHA-1:   $ACTUAL_SHA1"
+
+          test -n "$ACTUAL_SHA1" || {
+            echo "Could not read signer SHA-1 from apksigner output."
+            exit 1
+          }
+
+          if [ "$ACTUAL_SHA1" != "$EXPECTED_SHA1" ]; then
+            echo "APK signer does not match the official Homika release certificate."
+            exit 1
+          fi
+
+          echo "Official Homika signing certificate verified."
 
           sha256sum "$OUT" > "${OUT}.sha256"
           echo "path=$OUT" >> "$GITHUB_OUTPUT"
