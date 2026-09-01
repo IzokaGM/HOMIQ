@@ -1,6 +1,8 @@
 package com.homiq.app.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,14 +17,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.HomeWork
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -151,6 +156,24 @@ fun CalendarScreen(
             )
         }
     }
+    val selectedDayUnavailable = remember(
+        filteredBookings,
+        filteredBlocks,
+        selectedDay,
+        selectedPropertyId,
+    ) {
+        selectedPropertyId != null && (
+            filteredBookings.any {
+                selectedDay >= it.checkInEpochDay && selectedDay < it.checkOutEpochDay
+            } || filteredBlocks.any {
+                CalendarRules.containsDay(
+                    startEpochDay = it.startEpochDay,
+                    endEpochDayExclusive = it.endEpochDay,
+                    dayEpoch = selectedDay,
+                )
+            }
+        )
+    }
     val propertyNames = remember(state.properties) {
         state.properties.associate { it.id to it.name }
     }
@@ -162,7 +185,7 @@ fun CalendarScreen(
         if (it.isLowerCase()) it.titlecase(locale) else it.toString()
     }
 
-    val handleDayClick: (Long) -> Unit = { epochDay ->
+    val handleDayLongPress: (Long) -> Unit = { epochDay ->
         selectedDay = epochDay
 
         val dayBookings = filteredBookings.filter {
@@ -178,18 +201,17 @@ fun CalendarScreen(
         }
 
         when {
-            // A blocked date stays on Calendar so its block information and
-            // Unblock action are immediately visible below the month grid.
+            // Blocked dates stay selected so block information/actions are
+            // immediately visible below the calendar.
             dayBlocks.isNotEmpty() -> Unit
 
-            // One booking is unambiguous: open its detail immediately.
+            // Long-press is the quick path for an unambiguous booking.
             dayBookings.size == 1 -> onBookingClick(dayBookings.first().id)
 
-            // Back-to-back / multiple bookings need a choice, so keep the date
-            // selected and show every matching booking below the calendar.
+            // Multiple/back-to-back bookings need a choice from the list.
             dayBookings.size > 1 -> Unit
 
-            // Empty date: go straight to New Booking with this date prefilled.
+            // Empty date: long-press jumps straight into New Booking.
             else -> onNewBooking(epochDay, selectedPropertyId)
         }
     }
@@ -280,7 +302,8 @@ fun CalendarScreen(
                         selectedDay = selectedDay,
                         bookings = filteredBookings,
                         blocks = filteredBlocks,
-                        onDayClick = handleDayClick,
+                        onDayClick = { selectedDay = it },
+                        onDayLongClick = handleDayLongPress,
                     )
                     TextButton(
                         onClick = {
@@ -301,42 +324,13 @@ fun CalendarScreen(
         item { AvailabilityLegend() }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(
-                        R.string.selected_date_title,
-                        formatEpochDay(selectedDay, locale),
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f),
-                )
-
-                if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
-                    TextButton(
-                        onClick = {
-                            onBlockDate(selectedDay, selectedPropertyId)
-                        },
-                        contentPadding = PaddingValues(
-                            horizontal = 8.dp,
-                            vertical = 2.dp,
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Block,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.block_from_date),
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
-                    }
-                }
-            }
+            Text(
+                text = stringResource(
+                    R.string.selected_date_title,
+                    formatEpochDay(selectedDay, locale),
+                ),
+                style = MaterialTheme.typography.titleMedium,
+            )
         }
 
         if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
@@ -372,6 +366,71 @@ fun CalendarScreen(
             }
         }
 
+        item {
+            CalendarSelectedDateActions(
+                canCreate = !selectedDayUnavailable,
+                onBook = {
+                    onNewBooking(selectedDay, selectedPropertyId)
+                },
+                onBlock = {
+                    onBlockDate(selectedDay, selectedPropertyId)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CalendarSelectedDateActions(
+    canCreate: Boolean,
+    onBook: () -> Unit,
+    onBlock: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Button(
+            onClick = onBook,
+            modifier = Modifier.weight(1f),
+            enabled = canCreate,
+            contentPadding = PaddingValues(
+                horizontal = 12.dp,
+                vertical = 8.dp,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(R.string.book_from_date),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 5.dp),
+            )
+        }
+
+        OutlinedButton(
+            onClick = onBlock,
+            modifier = Modifier.weight(1f),
+            enabled = canCreate,
+            contentPadding = PaddingValues(
+                horizontal = 12.dp,
+                vertical = 8.dp,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Block,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(R.string.block_from_date),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 5.dp),
+            )
+        }
     }
 }
 
@@ -383,6 +442,7 @@ private fun MonthGrid(
     bookings: List<BookingEntity>,
     blocks: List<BlockedDateEntity>,
     onDayClick: (Long) -> Unit,
+    onDayLongClick: (Long) -> Unit,
 ) {
     val weekdays = stringArrayResource(R.array.weekdays_short)
     val firstDayOffset = month.atDay(1).dayOfWeek.value % 7
@@ -445,6 +505,7 @@ private fun MonthGrid(
                             hasStay = hasStay,
                             hasBlock = hasBlock,
                             onClick = { onDayClick(epoch) },
+                            onLongClick = { onDayLongClick(epoch) },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -454,6 +515,7 @@ private fun MonthGrid(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DayCell(
     day: Int,
@@ -464,6 +526,7 @@ private fun DayCell(
     hasStay: Boolean,
     hasBlock: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val container = when {
@@ -482,7 +545,10 @@ private fun DayCell(
         modifier = modifier
             .height(36.dp)
             .padding(1.dp)
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
         shape = MaterialTheme.shapes.medium,
         color = container,
         border = border,
@@ -497,6 +563,18 @@ private fun DayCell(
                     FontWeight.Normal
                 },
             )
+
+            if (hasBlock) {
+                Text(
+                    text = "×",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 1.dp, end = 4.dp),
+                )
+            }
 
             if (hasCheckIn || hasCheckOut) {
                 Row(
