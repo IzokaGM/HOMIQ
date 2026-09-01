@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class CalendarUiState(
     val month: YearMonth = YearMonth.now(),
@@ -30,7 +31,7 @@ data class CalendarUiState(
 class CalendarViewModel(
     properties: PropertyRepository,
     bookings: BookingRepository,
-    blockedDates: BlockedDateRepository,
+    private val blockedDates: BlockedDateRepository,
 ) : ViewModel() {
     private val month = MutableStateFlow(YearMonth.now())
 
@@ -82,5 +83,11 @@ class CalendarViewModel(
 
     fun goToToday() {
         month.value = YearMonth.now()
+    }
+
+    fun deleteBlock(blockId: String) {
+        viewModelScope.launch {
+            blockedDates.delete(blockId)
+        }
     }
 }

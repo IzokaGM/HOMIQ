@@ -29,13 +29,13 @@ class HomiqViewModelFactory(
                 BookingViewModel(
                     properties = container.properties,
                     bookings = container.bookings,
+                    blockedDates = container.blockedDates,
                     bookingManager = BookingManager(
                         properties = container.properties,
                         bookings = container.bookings,
                         blockedDates = container.blockedDates,
                     ),
                 ) as T
-
 
             modelClass.isAssignableFrom(CalendarViewModel::class.java) ->
                 CalendarViewModel(
@@ -54,7 +54,6 @@ class HomiqViewModelFactory(
                     ),
                 ) as T
 
-
             modelClass.isAssignableFrom(FinanceViewModel::class.java) ->
                 FinanceViewModel(
                     payments = container.payments,
@@ -69,7 +68,6 @@ class HomiqViewModelFactory(
                     ),
                 ) as T
 
-
             modelClass.isAssignableFrom(MoneyViewModel::class.java) ->
                 MoneyViewModel(
                     propertyRepository = container.properties,
@@ -80,7 +78,6 @@ class HomiqViewModelFactory(
                         expenses = container.expenses,
                     ),
                 ) as T
-
 
             modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
                 DashboardViewModel(
@@ -100,12 +97,10 @@ class HomiqViewModelFactory(
                     expenses = container.expenses,
                 ) as T
 
-
             modelClass.isAssignableFrom(BackupViewModel::class.java) ->
                 BackupViewModel(
                     service = container.backupService,
                 ) as T
-
 
             modelClass.isAssignableFrom(SyncViewModel::class.java) ->
                 SyncViewModel(

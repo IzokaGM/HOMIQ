@@ -26,9 +26,11 @@ import com.homiq.app.data.model.BookingSource
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.domain.BookingDraft
 import com.homiq.app.domain.BookingSaveResult
-import com.homiq.app.ui.components.DateField
+import com.homiq.app.ui.components.AvailabilityDateField
+import com.homiq.app.ui.components.AvailabilityDateMode
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.components.SelectionField
+import com.homiq.app.ui.components.isStayRangeAvailable
 import com.homiq.app.ui.util.formatSenForInput
 import com.homiq.app.ui.util.labelRes
 import com.homiq.app.ui.util.messageRes
@@ -48,9 +50,9 @@ fun BookingFormScreen(
     initialPropertyId: String? = null,
 ) {
     val bookings by viewModel.bookingList.collectAsStateWithLifecycle()
+    val blockedDates by viewModel.blockedDateList.collectAsStateWithLifecycle()
     val properties by viewModel.propertyList.collectAsStateWithLifecycle()
     val existing = bookings.firstOrNull { it.id == bookingId }
-
     val selectableProperties = remember(properties, existing) {
         properties.filter {
             it.isActive || it.id == existing?.propertyId
@@ -88,7 +90,6 @@ fun BookingFormScreen(
     var errorMessage by remember(bookingId) {
         mutableStateOf<Int?>(null)
     }
-
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(existing, selectableProperties) {
@@ -112,6 +113,24 @@ fun BookingFormScreen(
         ) {
             propertyId = selectableProperties.first().id
         }
+    }
+
+    val selectedRangeAvailable = remember(
+        checkIn,
+        checkOut,
+        propertyId,
+        bookings,
+        blockedDates,
+        bookingId,
+    ) {
+        isStayRangeAvailable(
+            checkInEpochDay = checkIn,
+            checkOutEpochDay = checkOut,
+            propertyId = propertyId,
+            bookings = bookings,
+            blockedDates = blockedDates,
+            excludeBookingId = bookingId,
+        )
     }
 
     LazyColumn(
@@ -163,7 +182,6 @@ fun BookingFormScreen(
                     .firstOrNull { it.id == propertyId }
                     ?.name
                     .orEmpty()
-
                 SelectionField(
                     label = stringResource(R.string.property),
                     selectedText = selectedName,
@@ -205,30 +223,51 @@ fun BookingFormScreen(
             }
 
             item {
-                DateField(
+                AvailabilityDateField(
                     label = stringResource(R.string.check_in),
                     epochDay = checkIn,
                     onDateSelected = {
                         checkIn = it
                         if (checkOut <= checkIn) {
-                            checkOut = checkIn + 1
+                            checkOut = checkIn + 1L
                         }
                         errorMessage = null
                     },
+                    mode = AvailabilityDateMode.CHECK_IN,
+                    propertyId = propertyId,
+                    bookings = bookings,
+                    blockedDates = blockedDates,
+                    excludeBookingId = bookingId,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
 
             item {
-                DateField(
+                AvailabilityDateField(
                     label = stringResource(R.string.check_out),
                     epochDay = checkOut,
                     onDateSelected = {
                         checkOut = it
                         errorMessage = null
                     },
+                    mode = AvailabilityDateMode.CHECK_OUT,
+                    propertyId = propertyId,
+                    bookings = bookings,
+                    blockedDates = blockedDates,
+                    excludeBookingId = bookingId,
+                    checkInEpochDay = checkIn,
                     modifier = Modifier.fillMaxWidth(),
                 )
+            }
+
+            if (propertyId.isNotBlank() && !selectedRangeAvailable) {
+                item {
+                    Text(
+                        text = stringResource(R.string.selected_dates_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             item {
@@ -287,15 +326,11 @@ fun BookingFormScreen(
             item {
                 Button(
                     onClick = {
-                        val amountSen =
-                            parseRinggitToSen(totalAmount)
-
+                        val amountSen = parseRinggitToSen(totalAmount)
                         if (amountSen == null) {
-                            errorMessage =
-                                R.string.error_invalid_amount
+                            errorMessage = R.string.error_invalid_amount
                             return@Button
                         }
-
                         scope.launch {
                             when (
                                 val result = viewModel.save(
@@ -318,12 +353,12 @@ fun BookingFormScreen(
                                     onSaved(result.bookingId)
 
                                 is BookingSaveResult.Failure ->
-                                    errorMessage =
-                                        result.issue.messageRes()
+                                    errorMessage = result.issue.messageRes()
                             }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = propertyId.isBlank() || selectedRangeAvailable,
                 ) {
                     Text(stringResource(R.string.save_booking))
                 }

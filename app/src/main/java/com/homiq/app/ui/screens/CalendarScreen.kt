@@ -7,14 +7,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Block
@@ -51,6 +50,10 @@ import com.homiq.app.data.local.entity.BlockedDateEntity
 import com.homiq.app.data.local.entity.BookingEntity
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.domain.CalendarRules
+import com.homiq.app.ui.components.AvailabilityLegend
+import com.homiq.app.ui.components.CalendarCheckInBlue
+import com.homiq.app.ui.components.CalendarCheckOutRed
+import com.homiq.app.ui.components.CalendarMarkerDot
 import com.homiq.app.ui.components.EmptyStateCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.components.SelectionField
@@ -105,21 +108,21 @@ fun CalendarScreen(
     }
     val filteredBookings = remember(state.bookings, selectedPropertyId) {
         state.bookings.filter {
-            selectedPropertyId == null || it.propertyId == selectedPropertyId
+            !it.isDeleted &&
+                it.status != BookingStatus.CANCELLED &&
+                (selectedPropertyId == null || it.propertyId == selectedPropertyId)
         }
     }
     val filteredBlocks = remember(state.blockedDates, selectedPropertyId) {
         state.blockedDates.filter {
-            selectedPropertyId == null || it.propertyId == selectedPropertyId
+            !it.isDeleted &&
+                (selectedPropertyId == null || it.propertyId == selectedPropertyId)
         }
     }
     val selectedBookings = remember(filteredBookings, selectedDay) {
         filteredBookings.filter {
-            CalendarRules.containsDay(
-                startEpochDay = it.checkInEpochDay,
-                endEpochDayExclusive = it.checkOutEpochDay,
-                dayEpoch = selectedDay,
-            )
+            selectedDay >= it.checkInEpochDay &&
+                selectedDay <= it.checkOutEpochDay
         }
     }
     val selectedBlocks = remember(filteredBlocks, selectedDay) {
@@ -130,6 +133,24 @@ fun CalendarScreen(
                 dayEpoch = selectedDay,
             )
         }
+    }
+    val selectedDayUnavailable = remember(
+        filteredBookings,
+        filteredBlocks,
+        selectedDay,
+        selectedPropertyId,
+    ) {
+        selectedPropertyId != null && (
+            filteredBookings.any {
+                selectedDay >= it.checkInEpochDay && selectedDay < it.checkOutEpochDay
+            } || filteredBlocks.any {
+                CalendarRules.containsDay(
+                    startEpochDay = it.startEpochDay,
+                    endEpochDayExclusive = it.endEpochDay,
+                    dayEpoch = selectedDay,
+                )
+            }
+        )
     }
     val propertyNames = remember(state.properties) {
         state.properties.associate { it.id to it.name }
@@ -192,7 +213,10 @@ fun CalendarScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(onClick = viewModel::previousMonth) {
+                        IconButton(
+                            onClick = viewModel::previousMonth,
+                            modifier = Modifier.size(36.dp),
+                        ) {
                             Icon(
                                 imageVector = Icons.Outlined.ChevronLeft,
                                 contentDescription = stringResource(R.string.previous_month),
@@ -205,7 +229,10 @@ fun CalendarScreen(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f),
                         )
-                        IconButton(onClick = viewModel::nextMonth) {
+                        IconButton(
+                            onClick = viewModel::nextMonth,
+                            modifier = Modifier.size(36.dp),
+                        ) {
                             Icon(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = stringResource(R.string.next_month),
@@ -237,7 +264,7 @@ fun CalendarScreen(
                 }
             }
         }
-        item { CalendarLegend() }
+        item { AvailabilityLegend() }
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -248,6 +275,7 @@ fun CalendarScreen(
                         onNewBooking(selectedDay, selectedPropertyId)
                     },
                     modifier = Modifier.weight(1f),
+                    enabled = !selectedDayUnavailable,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Icon(
@@ -266,6 +294,7 @@ fun CalendarScreen(
                         onBlockDate(selectedDay, selectedPropertyId)
                     },
                     modifier = Modifier.weight(1f),
+                    enabled = !selectedDayUnavailable,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Icon(
@@ -317,6 +346,7 @@ fun CalendarScreen(
                 CalendarBlockRow(
                     block = block,
                     propertyName = propertyNames[block.propertyId].orEmpty(),
+                    onUnblock = { viewModel.deleteBlock(block.id) },
                 )
             }
         }
@@ -343,7 +373,7 @@ private fun MonthGrid(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             weekdays.forEach { label ->
                 Text(
@@ -355,6 +385,7 @@ private fun MonthGrid(
                 )
             }
         }
+
         cells.chunked(7).forEach { week ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 week.forEach { date ->
@@ -362,18 +393,18 @@ private fun MonthGrid(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(1f),
+                                .height(36.dp),
                         )
                     } else {
                         val epoch = date.toEpochDay()
-                        val isToday = date == today
-                        val isSelected = epoch == selectedDay
-                        val hasBooking = bookings.any {
-                            CalendarRules.containsDay(
-                                it.checkInEpochDay,
-                                it.checkOutEpochDay,
-                                epoch,
-                            )
+                        val hasCheckIn = bookings.any {
+                            it.checkInEpochDay == epoch
+                        }
+                        val hasCheckOut = bookings.any {
+                            it.checkOutEpochDay == epoch
+                        }
+                        val hasStay = bookings.any {
+                            epoch >= it.checkInEpochDay && epoch < it.checkOutEpochDay
                         }
                         val hasBlock = blocks.any {
                             CalendarRules.containsDay(
@@ -382,11 +413,14 @@ private fun MonthGrid(
                                 epoch,
                             )
                         }
+
                         DayCell(
                             day = date.dayOfMonth,
-                            isToday = isToday,
-                            isSelected = isSelected,
-                            hasBooking = hasBooking,
+                            isToday = date == today,
+                            isSelected = epoch == selectedDay,
+                            hasCheckIn = hasCheckIn,
+                            hasCheckOut = hasCheckOut,
+                            hasStay = hasStay,
                             hasBlock = hasBlock,
                             onClick = { onDayClick(epoch) },
                             modifier = Modifier.weight(1f),
@@ -403,7 +437,9 @@ private fun DayCell(
     day: Int,
     isToday: Boolean,
     isSelected: Boolean,
-    hasBooking: Boolean,
+    hasCheckIn: Boolean,
+    hasCheckOut: Boolean,
+    hasStay: Boolean,
     hasBlock: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -411,7 +447,7 @@ private fun DayCell(
     val container = when {
         isSelected -> MaterialTheme.colorScheme.primaryContainer
         hasBlock -> MaterialTheme.colorScheme.surfaceVariant
-        hasBooking -> MaterialTheme.colorScheme.secondaryContainer
+        hasStay -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
         else -> MaterialTheme.colorScheme.surface
     }
     val border = if (isToday) {
@@ -422,7 +458,7 @@ private fun DayCell(
 
     Surface(
         modifier = modifier
-            .aspectRatio(1f)
+            .height(36.dp)
             .padding(1.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
@@ -433,68 +469,25 @@ private fun DayCell(
             Text(
                 text = day.toString(),
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (isToday || isSelected) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Normal
+                },
             )
-            if (hasBooking || hasBlock) {
+
+            if (hasCheckIn || hasCheckOut) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 3.dp),
+                        .padding(bottom = 2.dp),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    if (hasBooking) EventDot(booked = true)
-                    if (hasBlock) EventDot(booked = false)
+                    if (hasCheckIn) CalendarMarkerDot(CalendarCheckInBlue)
+                    if (hasCheckOut) CalendarMarkerDot(CalendarCheckOutRed)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun EventDot(booked: Boolean) {
-    Surface(
-        modifier = Modifier.size(4.dp),
-        shape = CircleShape,
-        color = if (booked) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-    ) {}
-}
-
-@Composable
-private fun CalendarLegend() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        LegendItem(
-            booked = true,
-            label = stringResource(R.string.legend_booked),
-        )
-        LegendItem(
-            booked = false,
-            label = stringResource(R.string.legend_blocked),
-        )
-    }
-}
-
-@Composable
-private fun LegendItem(
-    booked: Boolean,
-    label: String,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        EventDot(booked = booked)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -554,6 +547,7 @@ private fun CalendarBookingRow(
 private fun CalendarBlockRow(
     block: BlockedDateEntity,
     propertyName: String,
+    onUnblock: () -> Unit,
 ) {
     Surface(
         shape = MaterialTheme.shapes.large,
@@ -561,7 +555,7 @@ private fun CalendarBlockRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -570,7 +564,10 @@ private fun CalendarBlockRow(
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
             )
-            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
                 Text(
                     text = stringResource(R.string.blocked),
                     style = MaterialTheme.typography.titleSmall,
@@ -586,6 +583,16 @@ private fun CalendarBlockRow(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+            TextButton(
+                onClick = onUnblock,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.unblock),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
         }
     }
 }
+
