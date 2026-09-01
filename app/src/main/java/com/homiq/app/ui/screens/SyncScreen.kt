@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,22 +17,21 @@ import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
@@ -39,7 +39,6 @@ import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatBackupTime
 import com.homiq.app.ui.util.messageRes
-import com.homiq.app.ui.util.signingCertificateSha1
 import com.homiq.app.ui.viewmodel.SyncUiMessage
 import com.homiq.app.ui.viewmodel.SyncViewModel
 
@@ -48,26 +47,14 @@ fun SyncScreen(
     viewModel: SyncViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val state by viewModel.state
-        .collectAsStateWithLifecycle()
-    val locale =
-        LocalConfiguration.current.locales[0]
-    val context = LocalContext.current
-    val clipboard = LocalClipboardManager.current
-    val signingSha1 = remember(context) {
-        signingCertificateSha1(context)
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val locale = LocalConfiguration.current.locales[0]
 
-    val authorizationLauncher =
-        rememberLauncherForActivityResult(
-            contract =
-                ActivityResultContracts
-                    .StartIntentSenderForResult(),
-        ) { result ->
-            viewModel.completeAuthorization(
-                result.data,
-            )
-        }
+    val authorizationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        viewModel.completeAuthorization(result.data)
+    }
 
     state.pendingResolution?.let { pending ->
         LaunchedEffect(pending) {
@@ -80,12 +67,10 @@ fun SyncScreen(
         }
     }
 
-    val lastSync =
-        formatBackupTime(
-            state.runtime
-                .lastSyncEpochMillis,
-            locale,
-        ) ?: stringResource(R.string.never)
+    val lastSync = formatBackupTime(
+        state.runtime.lastSyncEpochMillis,
+        locale,
+    ) ?: stringResource(R.string.never)
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -93,111 +78,72 @@ fun SyncScreen(
             start = 16.dp,
             top = 18.dp,
             end = 16.dp,
-            bottom = 32.dp,
+            bottom = 28.dp,
         ),
-        verticalArrangement =
-            Arrangement.spacedBy(18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             ScreenHeader(
-                title =
-                    stringResource(
-                        R.string.sync_title,
-                    ),
-                subtitle =
-                    stringResource(
-                        R.string.sync_subtitle,
-                    ),
+                title = stringResource(R.string.sync_title),
+                subtitle = stringResource(R.string.sync_more_body),
             )
         }
 
         item {
-            InfoCard(
-                title =
-                    stringResource(
-                        if (state.runtime.enabled) {
-                            R.string.sync_connected
-                        } else {
-                            R.string.sync_not_connected
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+                tonalElevation = 1.dp,
+            ) {
+                Column {
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = stringResource(
+                                    if (state.runtime.enabled) {
+                                        R.string.sync_connected
+                                    } else {
+                                        R.string.sync_not_connected
+                                    },
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
                         },
-                    ),
-                body =
-                    stringResource(
-                        if (state.runtime.enabled) {
-                            R.string.sync_connected_body
-                        } else {
-                            R.string.sync_not_connected_body
+                        supportingContent = {
+                            Text(
+                                stringResource(
+                                    if (state.runtime.enabled) {
+                                        R.string.sync_connected_body_short
+                                    } else {
+                                        R.string.sync_not_connected_body_short
+                                    },
+                                ),
+                            )
                         },
-                    ),
-            )
-        }
+                    )
 
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.sync_same_account_title,
-                    ),
-                body =
-                    stringResource(
-                        R.string.sync_same_account_body,
-                    ),
-            )
-        }
+                    HorizontalDivider()
 
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.sync_last_sync,
-                    ),
-                body = lastSync,
-            )
-        }
-
-        if (state.runtime.enabled) {
-            item {
-                InfoCard(
-                    title =
-                        stringResource(
-                            R.string.sync_devices_seen,
-                        ),
-                    body =
-                        stringResource(
-                            R.string.sync_devices_seen_body,
-                            state.runtime
-                                .remoteDeviceCount,
-                        ),
-                )
-            }
-
-            item {
-                InfoCard(
-                    title =
-                        stringResource(
-                            R.string.sync_conflicts,
-                        ),
-                    body =
-                        stringResource(
-                            R.string.sync_conflicts_body,
-                            state.runtime
-                                .lastConflictCount,
-                        ),
-                )
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = stringResource(R.string.sync_last_sync),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                        supportingContent = {
+                            Text(lastSync)
+                        },
+                    )
+                }
             }
         }
 
         if (state.runtime.authorizationRequired) {
             item {
                 InfoCard(
-                    title =
-                        stringResource(
-                            R.string.sync_reauthorize_title,
-                        ),
-                    body =
-                        stringResource(
-                            R.string.sync_reauthorize_body,
-                        ),
+                    title = stringResource(R.string.sync_reauthorize_title),
+                    body = stringResource(R.string.sync_reauthorize_body),
                 )
             }
         }
@@ -205,10 +151,8 @@ fun SyncScreen(
         if (state.runtime.isSyncing) {
             item {
                 androidx.compose.foundation.layout.Box(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    contentAlignment =
-                        Alignment.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
@@ -219,25 +163,16 @@ fun SyncScreen(
             item {
                 Button(
                     onClick = viewModel::connect,
-                    enabled =
-                        !state.runtime.isSyncing,
-                    modifier =
-                        Modifier.fillMaxWidth(),
+                    enabled = !state.runtime.isSyncing,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
-                        imageVector =
-                            Icons.Outlined.CloudDone,
+                        imageVector = Icons.Outlined.CloudDone,
                         contentDescription = null,
                     )
                     Text(
-                        text =
-                            stringResource(
-                                R.string.sync_connect,
-                            ),
-                        modifier =
-                            Modifier.padding(
-                                start = 8.dp,
-                            ),
+                        text = stringResource(R.string.sync_connect),
+                        modifier = Modifier.padding(start = 8.dp),
                     )
                 }
             }
@@ -245,115 +180,43 @@ fun SyncScreen(
             item {
                 Button(
                     onClick = viewModel::syncNow,
-                    enabled =
-                        !state.runtime.isSyncing,
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                ) {
-                    Icon(
-                        imageVector =
-                            Icons.Outlined.CloudSync,
-                        contentDescription = null,
-                    )
-                    Text(
-                        text =
-                            stringResource(
-                                R.string.sync_now,
-                            ),
-                        modifier =
-                            Modifier.padding(
-                                start = 8.dp,
-                            ),
-                    )
-                }
-            }
-
-            item {
-                OutlinedButton(
-                    onClick =
-                        viewModel::disconnect,
-                    enabled =
-                        !state.runtime.isSyncing,
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                ) {
-                    Icon(
-                        imageVector =
-                            Icons.Outlined.LinkOff,
-                        contentDescription = null,
-                    )
-                    Text(
-                        text =
-                            stringResource(
-                                R.string.sync_disconnect,
-                            ),
-                        modifier =
-                            Modifier.padding(
-                                start = 8.dp,
-                            ),
-                    )
-                }
-            }
-        }
-
-        if (!state.runtime.enabled && signingSha1 != null) {
-            item {
-                InfoCard(
-                    title = stringResource(R.string.sync_oauth_setup_title),
-                    body = stringResource(
-                        R.string.sync_oauth_setup_body,
-                        context.packageName,
-                        signingSha1,
-                    ),
-                )
-            }
-            item {
-                OutlinedButton(
-                    onClick = {
-                        clipboard.setText(AnnotatedString(signingSha1))
-                    },
+                    enabled = !state.runtime.isSyncing,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(stringResource(R.string.copy_sha1))
+                    Icon(
+                        imageVector = Icons.Outlined.CloudSync,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.sync_now),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
                 }
             }
-        }
 
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.sync_architecture_title,
-                    ),
-                body =
-                    stringResource(
-                        R.string.sync_architecture_body,
-                    ),
-            )
-        }
-
-        item {
-            Text(
-                text =
-                    stringResource(
-                        R.string.sync_device_id,
-                        state.deviceId.take(8),
-                    ),
-                style =
-                    MaterialTheme.typography
-                        .labelMedium,
-                color =
-                    MaterialTheme.colorScheme
-                        .onSurfaceVariant,
-            )
+            item {
+                OutlinedButton(
+                    onClick = viewModel::disconnect,
+                    enabled = !state.runtime.isSyncing,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LinkOff,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.sync_disconnect),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
         }
     }
 
     state.message?.let { message ->
         SyncMessageDialog(
             message = message,
-            onDismiss =
-                viewModel::clearMessage,
+            onDismiss = viewModel::clearMessage,
         )
     }
 }
@@ -368,36 +231,18 @@ private fun SyncMessageDialog(
 
     when (message) {
         SyncUiMessage.SyncCompleted -> {
-            title =
-                stringResource(
-                    R.string.sync_success_title,
-                )
-            body =
-                stringResource(
-                    R.string.sync_success_body,
-                )
+            title = stringResource(R.string.sync_success_title)
+            body = stringResource(R.string.sync_success_body)
         }
 
         SyncUiMessage.Disconnected -> {
-            title =
-                stringResource(
-                    R.string.sync_disconnected_title,
-                )
-            body =
-                stringResource(
-                    R.string.sync_disconnected_body,
-                )
+            title = stringResource(R.string.sync_disconnected_title)
+            body = stringResource(R.string.sync_disconnected_body)
         }
 
         is SyncUiMessage.Failure -> {
-            title =
-                stringResource(
-                    R.string.sync_error_title,
-                )
-            body =
-                stringResource(
-                    message.reason.messageRes(),
-                )
+            title = stringResource(R.string.sync_error_title)
+            body = stringResource(message.reason.messageRes())
         }
     }
 
@@ -406,12 +251,8 @@ private fun SyncMessageDialog(
         title = { Text(title) },
         text = { Text(body) },
         confirmButton = {
-            TextButton(
-                onClick = onDismiss,
-            ) {
-                Text(
-                    stringResource(R.string.ok),
-                )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.ok))
             }
         },
     )

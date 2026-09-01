@@ -3,6 +3,7 @@ package com.homiq.app.ui.screens
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,13 +15,15 @@ import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.backup.BackupPreview
-import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatBackupTime
 import com.homiq.app.ui.util.messageRes
@@ -42,48 +44,34 @@ fun BackupScreen(
     viewModel: BackupViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val state by viewModel.state
-        .collectAsStateWithLifecycle()
-    val locale =
-        LocalConfiguration.current.locales[0]
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val locale = LocalConfiguration.current.locales[0]
 
-    val createLauncher =
-        rememberLauncherForActivityResult(
-            contract =
-                ActivityResultContracts
-                    .CreateDocument(
-                        "application/json",
-                    ),
-        ) { uri ->
-            if (uri != null) {
-                viewModel.createBackup(uri)
-            }
+    val createLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.createBackup(uri)
         }
+    }
 
-    val openLauncher =
-        rememberLauncherForActivityResult(
-            contract =
-                ActivityResultContracts
-                    .OpenDocument(),
-        ) { uri ->
-            if (uri != null) {
-                viewModel.inspectRestore(uri)
-            }
+    val openLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.inspectRestore(uri)
         }
+    }
 
-    val lastBackup =
-        formatBackupTime(
-            state.history
-                .lastBackupEpochMillis,
-            locale,
-        ) ?: stringResource(R.string.never)
+    val lastBackup = formatBackupTime(
+        state.history.lastBackupEpochMillis,
+        locale,
+    ) ?: stringResource(R.string.never)
 
-    val lastRestore =
-        formatBackupTime(
-            state.history
-                .lastRestoreEpochMillis,
-            locale,
-        ) ?: stringResource(R.string.never)
+    val lastRestore = formatBackupTime(
+        state.history.lastRestoreEpochMillis,
+        locale,
+    ) ?: stringResource(R.string.never)
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -91,64 +79,56 @@ fun BackupScreen(
             start = 16.dp,
             top = 18.dp,
             end = 16.dp,
-            bottom = 32.dp,
+            bottom = 28.dp,
         ),
-        verticalArrangement =
-            Arrangement.spacedBy(18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             ScreenHeader(
-                title =
-                    stringResource(
-                        R.string.backup_restore_title,
-                    ),
-                subtitle =
-                    stringResource(
-                        R.string.backup_restore_subtitle,
-                    ),
+                title = stringResource(R.string.backup_restore_title),
+                subtitle = stringResource(R.string.backup_restore_subtitle),
             )
         }
 
         item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.backup_zero_cost_title,
-                    ),
-                body =
-                    stringResource(
-                        R.string.backup_zero_cost_body,
-                    ),
-            )
-        }
-
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.backup_last_backup,
-                    ),
-                body = lastBackup,
-            )
-        }
-
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.backup_last_restore,
-                    ),
-                body = lastRestore,
-            )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+                tonalElevation = 1.dp,
+            ) {
+                Column {
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = stringResource(R.string.backup_last_backup),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                        supportingContent = {
+                            Text(lastBackup)
+                        },
+                    )
+                    HorizontalDivider()
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = stringResource(R.string.backup_last_restore),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        },
+                        supportingContent = {
+                            Text(lastRestore)
+                        },
+                    )
+                }
+            }
         }
 
         if (state.isBusy) {
             item {
                 androidx.compose.foundation.layout.Box(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    contentAlignment =
-                        Alignment.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
@@ -158,41 +138,20 @@ fun BackupScreen(
         item {
             Button(
                 onClick = {
-                    createLauncher.launch(
-                        viewModel.backupFileName(),
-                    )
+                    createLauncher.launch(viewModel.backupFileName())
                 },
                 enabled = !state.isBusy,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    imageVector =
-                        Icons.Outlined.CloudUpload,
+                    imageVector = Icons.Outlined.CloudUpload,
                     contentDescription = null,
                 )
                 Text(
-                    text =
-                        stringResource(
-                            R.string.create_backup,
-                        ),
-                    modifier =
-                        Modifier.padding(start = 8.dp),
+                    text = stringResource(R.string.create_backup),
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
-        }
-
-        item {
-            Text(
-                text =
-                    stringResource(
-                        R.string.backup_picker_hint,
-                    ),
-                style =
-                    MaterialTheme.typography.bodyMedium,
-                color =
-                    MaterialTheme.colorScheme
-                        .onSurfaceVariant,
-            )
         }
 
         item {
@@ -210,32 +169,14 @@ fun BackupScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    imageVector =
-                        Icons.Outlined.Restore,
+                    imageVector = Icons.Outlined.Restore,
                     contentDescription = null,
                 )
                 Text(
-                    text =
-                        stringResource(
-                            R.string.restore_backup,
-                        ),
-                    modifier =
-                        Modifier.padding(start = 8.dp),
+                    text = stringResource(R.string.restore_backup),
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
-        }
-
-        item {
-            InfoCard(
-                title =
-                    stringResource(
-                        R.string.restore_warning_title,
-                    ),
-                body =
-                    stringResource(
-                        R.string.restore_warning_body,
-                    ),
-            )
         }
     }
 
@@ -243,10 +184,8 @@ fun BackupScreen(
         RestoreConfirmationDialog(
             preview = it,
             locale = locale,
-            onConfirm =
-                viewModel::confirmRestore,
-            onDismiss =
-                viewModel::cancelRestore,
+            onConfirm = viewModel::confirmRestore,
+            onDismiss = viewModel::cancelRestore,
         )
     }
 
@@ -254,8 +193,7 @@ fun BackupScreen(
         BackupResultDialog(
             message = message,
             locale = locale,
-            onDismiss =
-                viewModel::clearMessage,
+            onDismiss = viewModel::clearMessage,
         )
     }
 }
@@ -270,19 +208,14 @@ private fun RestoreConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                stringResource(
-                    R.string.restore_confirm_title,
-                ),
-            )
+            Text(stringResource(R.string.restore_confirm_title))
         },
         text = {
             Text(
                 stringResource(
                     R.string.restore_confirm_body,
                     formatBackupTime(
-                        preview
-                            .createdAtEpochMillis,
+                        preview.createdAtEpochMillis,
                         locale,
                     ).orEmpty(),
                     preview.propertyCount,
@@ -294,25 +227,13 @@ private fun RestoreConfirmationDialog(
             )
         },
         confirmButton = {
-            Button(
-                onClick = onConfirm,
-            ) {
-                Text(
-                    stringResource(
-                        R.string.restore_now,
-                    ),
-                )
+            Button(onClick = onConfirm) {
+                Text(stringResource(R.string.restore_now))
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-            ) {
-                Text(
-                    stringResource(
-                        R.string.cancel,
-                    ),
-                )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         },
     )
@@ -329,45 +250,28 @@ private fun BackupResultDialog(
 
     when (message) {
         is BackupUiMessage.BackupCreated -> {
-            title =
-                stringResource(
-                    R.string.backup_success_title,
-                )
-            body =
-                stringResource(
-                    R.string.backup_success_body,
-                    message.preview
-                        .totalRecordCount,
-                )
+            title = stringResource(R.string.backup_success_title)
+            body = stringResource(
+                R.string.backup_success_body,
+                message.preview.totalRecordCount,
+            )
         }
 
         is BackupUiMessage.RestoreCompleted -> {
-            title =
-                stringResource(
-                    R.string.restore_success_title,
-                )
-            body =
-                stringResource(
-                    R.string.restore_success_body,
-                    message.preview
-                        .totalRecordCount,
-                    formatBackupTime(
-                        message.preview
-                            .createdAtEpochMillis,
-                        locale,
-                    ).orEmpty(),
-                )
+            title = stringResource(R.string.restore_success_title)
+            body = stringResource(
+                R.string.restore_success_body,
+                message.preview.totalRecordCount,
+                formatBackupTime(
+                    message.preview.createdAtEpochMillis,
+                    locale,
+                ).orEmpty(),
+            )
         }
 
         is BackupUiMessage.Failure -> {
-            title =
-                stringResource(
-                    R.string.backup_error_title,
-                )
-            body =
-                stringResource(
-                    message.reason.messageRes(),
-                )
+            title = stringResource(R.string.backup_error_title)
+            body = stringResource(message.reason.messageRes())
         }
     }
 
@@ -376,12 +280,8 @@ private fun BackupResultDialog(
         title = { Text(title) },
         text = { Text(body) },
         confirmButton = {
-            TextButton(
-                onClick = onDismiss,
-            ) {
-                Text(
-                    stringResource(R.string.ok),
-                )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.ok))
             }
         },
     )

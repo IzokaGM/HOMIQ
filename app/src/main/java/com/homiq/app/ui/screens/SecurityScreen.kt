@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.security.AppLockService
-import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.security.canUseHomiqBiometrics
 import com.homiq.app.ui.viewmodel.AppLockViewModel
@@ -62,20 +62,18 @@ fun SecurityScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            top = 18.dp,
+            end = 16.dp,
+            bottom = 28.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             ScreenHeader(
                 title = stringResource(R.string.security),
                 subtitle = stringResource(R.string.security_subtitle),
-            )
-        }
-
-        item {
-            InfoCard(
-                title = stringResource(R.string.local_security_title),
-                body = stringResource(R.string.local_security_body),
             )
         }
 
@@ -87,7 +85,12 @@ fun SecurityScreen(
             ) {
                 Column {
                     ListItem(
-                        headlineContent = { Text(stringResource(R.string.app_lock)) },
+                        headlineContent = {
+                            Text(
+                                text = stringResource(R.string.app_lock),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        },
                         supportingContent = {
                             Text(
                                 stringResource(
@@ -96,24 +99,51 @@ fun SecurityScreen(
                                 ),
                             )
                         },
-                        leadingContent = { Icon(Icons.Outlined.Password, contentDescription = null) },
+                        leadingContent = {
+                            Icon(Icons.Outlined.Password, contentDescription = null)
+                        },
                         trailingContent = {
                             Text(
-                                stringResource(if (state.hasPin) R.string.on else R.string.off),
+                                text = stringResource(
+                                    if (state.hasPin) R.string.on else R.string.off,
+                                ),
                                 color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelLarge,
                             )
                         },
                     )
+
                     HorizontalDivider()
-                    if (!state.hasPin) {
+
+                    if (state.hasPin) {
                         ListItem(
-                            headlineContent = { Text(stringResource(R.string.set_pin)) },
-                            supportingContent = { Text(stringResource(R.string.pin_rules)) },
-                        )
-                    } else {
-                        ListItem(
-                            headlineContent = { Text(stringResource(R.string.change_pin)) },
-                            supportingContent = { Text(stringResource(R.string.pin_rules)) },
+                            headlineContent = {
+                                Text(
+                                    text = stringResource(R.string.biometric_unlock),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    stringResource(
+                                        if (biometricAvailable) {
+                                            R.string.biometric_unlock_body
+                                        } else {
+                                            R.string.biometric_unavailable
+                                        },
+                                    ),
+                                )
+                            },
+                            leadingContent = {
+                                Icon(Icons.Outlined.Fingerprint, contentDescription = null)
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = state.biometricEnabled && biometricAvailable,
+                                    onCheckedChange = viewModel::setBiometricEnabled,
+                                    enabled = biometricAvailable,
+                                )
+                            },
                         )
                     }
                 }
@@ -125,56 +155,34 @@ fun SecurityScreen(
                 Button(
                     onClick = { dialogMode = PinDialogMode.SET },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.set_pin)) }
+                ) {
+                    Text(stringResource(R.string.set_pin))
+                }
             } else {
                 OutlinedButton(
                     onClick = { dialogMode = PinDialogMode.CHANGE },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.change_pin)) }
+                ) {
+                    Text(stringResource(R.string.change_pin))
+                }
             }
         }
 
         if (state.hasPin) {
             item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    tonalElevation = 1.dp,
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.biometric_unlock)) },
-                        supportingContent = {
-                            Text(
-                                stringResource(
-                                    if (biometricAvailable) R.string.biometric_unlock_body
-                                    else R.string.biometric_unavailable,
-                                ),
-                            )
-                        },
-                        leadingContent = { Icon(Icons.Outlined.Fingerprint, contentDescription = null) },
-                        trailingContent = {
-                            Switch(
-                                checked = state.biometricEnabled && biometricAvailable,
-                                onCheckedChange = viewModel::setBiometricEnabled,
-                                enabled = biometricAvailable,
-                            )
-                        },
-                    )
-                }
-            }
-
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = stringResource(R.string.auto_lock),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
                         text = stringResource(R.string.auto_lock_body),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    androidx.compose.foundation.layout.Row(
+                    Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         listOf(0, 1, 5, 15).forEach { minutes ->
@@ -205,7 +213,9 @@ fun SecurityScreen(
                 TextButton(
                     onClick = { dialogMode = PinDialogMode.DISABLE },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.disable_app_lock)) }
+                ) {
+                    Text(stringResource(R.string.disable_app_lock))
+                }
             }
         }
     }
@@ -219,19 +229,25 @@ fun SecurityScreen(
                 if (viewModel.setPin(newPin)) {
                     dialogMode = null
                     true
-                } else false
+                } else {
+                    false
+                }
             },
             onChange = { currentPin, newPin ->
                 if (viewModel.changePin(currentPin, newPin)) {
                     dialogMode = null
                     true
-                } else false
+                } else {
+                    false
+                }
             },
             onDisable = { currentPin ->
                 if (viewModel.disable(currentPin)) {
                     dialogMode = null
                     true
-                } else false
+                } else {
+                    false
+                }
             },
         )
     }
@@ -284,26 +300,36 @@ private fun PinActionDialog(
                 if (mode != PinDialogMode.SET) {
                     PinField(
                         value = currentPin,
-                        onValueChange = { currentPin = it; error = null },
+                        onValueChange = {
+                            currentPin = it
+                            error = null
+                        },
                         label = stringResource(R.string.current_pin),
                     )
                 }
+
                 if (mode != PinDialogMode.DISABLE) {
                     PinField(
                         value = newPin,
-                        onValueChange = { newPin = it; error = null },
+                        onValueChange = {
+                            newPin = it
+                            error = null
+                        },
                         label = stringResource(R.string.new_pin),
                     )
                     PinField(
                         value = confirmPin,
-                        onValueChange = { confirmPin = it; error = null },
+                        onValueChange = {
+                            confirmPin = it
+                            error = null
+                        },
                         label = stringResource(R.string.confirm_pin),
                     )
                 }
-                val currentError = error
-                if (currentError != null) {
+
+                error?.let {
                     Text(
-                        currentError,
+                        text = it,
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -325,6 +351,7 @@ private fun PinActionDialog(
                                 error = errorPinSave
                             }
                         }
+
                         PinDialogMode.CHANGE -> {
                             if (!validNewPin()) {
                                 error = if (!AppLockService.isValidPin(newPin)) {
@@ -336,6 +363,7 @@ private fun PinActionDialog(
                                 error = errorCurrentPin
                             }
                         }
+
                         PinDialogMode.DISABLE -> {
                             if (!onDisable(currentPin)) {
                                 error = errorCurrentPin
@@ -343,10 +371,14 @@ private fun PinActionDialog(
                         }
                     }
                 },
-            ) { Text(stringResource(R.string.confirm)) }
+            ) {
+                Text(stringResource(R.string.confirm))
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
         },
     )
 }
@@ -359,9 +391,13 @@ private fun PinField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(it.filter(Char::isDigit).take(8)) },
+        onValueChange = {
+            onValueChange(it.filter(Char::isDigit).take(8))
+        },
         label = { Text(label) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword,
+        ),
         visualTransformation = PasswordVisualTransformation(),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
