@@ -15,17 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.HomeWork
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -154,24 +151,6 @@ fun CalendarScreen(
             )
         }
     }
-    val selectedDayUnavailable = remember(
-        filteredBookings,
-        filteredBlocks,
-        selectedDay,
-        selectedPropertyId,
-    ) {
-        selectedPropertyId != null && (
-            filteredBookings.any {
-                selectedDay >= it.checkInEpochDay && selectedDay < it.checkOutEpochDay
-            } || filteredBlocks.any {
-                CalendarRules.containsDay(
-                    startEpochDay = it.startEpochDay,
-                    endEpochDayExclusive = it.endEpochDay,
-                    dayEpoch = selectedDay,
-                )
-            }
-        )
-    }
     val propertyNames = remember(state.properties) {
         state.properties.associate { it.id to it.name }
     }
@@ -181,6 +160,38 @@ fun CalendarScreen(
         )
     }.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(locale) else it.toString()
+    }
+
+    val handleDayClick: (Long) -> Unit = { epochDay ->
+        selectedDay = epochDay
+
+        val dayBookings = filteredBookings.filter {
+            epochDay >= it.checkInEpochDay &&
+                epochDay <= it.checkOutEpochDay
+        }
+        val dayBlocks = filteredBlocks.filter {
+            CalendarRules.containsDay(
+                startEpochDay = it.startEpochDay,
+                endEpochDayExclusive = it.endEpochDay,
+                dayEpoch = epochDay,
+            )
+        }
+
+        when {
+            // A blocked date stays on Calendar so its block information and
+            // Unblock action are immediately visible below the month grid.
+            dayBlocks.isNotEmpty() -> Unit
+
+            // One booking is unambiguous: open its detail immediately.
+            dayBookings.size == 1 -> onBookingClick(dayBookings.first().id)
+
+            // Back-to-back / multiple bookings need a choice, so keep the date
+            // selected and show every matching booking below the calendar.
+            dayBookings.size > 1 -> Unit
+
+            // Empty date: go straight to New Booking with this date prefilled.
+            else -> onNewBooking(epochDay, selectedPropertyId)
+        }
     }
 
     LazyColumn(
@@ -269,7 +280,7 @@ fun CalendarScreen(
                         selectedDay = selectedDay,
                         bookings = filteredBookings,
                         blocks = filteredBlocks,
-                        onDayClick = { selectedDay = it },
+                        onDayClick = handleDayClick,
                     )
                     TextButton(
                         onClick = {
@@ -290,13 +301,42 @@ fun CalendarScreen(
         item { AvailabilityLegend() }
 
         item {
-            Text(
-                text = stringResource(
-                    R.string.selected_date_title,
-                    formatEpochDay(selectedDay, locale),
-                ),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.selected_date_title,
+                        formatEpochDay(selectedDay, locale),
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+
+                if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
+                    TextButton(
+                        onClick = {
+                            onBlockDate(selectedDay, selectedPropertyId)
+                        },
+                        contentPadding = PaddingValues(
+                            horizontal = 8.dp,
+                            vertical = 2.dp,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Block,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.block_from_date),
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                }
+            }
         }
 
         if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
@@ -332,71 +372,6 @@ fun CalendarScreen(
             }
         }
 
-        item {
-            CalendarSelectedDateActions(
-                canCreate = !selectedDayUnavailable,
-                onBook = {
-                    onNewBooking(selectedDay, selectedPropertyId)
-                },
-                onBlock = {
-                    onBlockDate(selectedDay, selectedPropertyId)
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun CalendarSelectedDateActions(
-    canCreate: Boolean,
-    onBook: () -> Unit,
-    onBlock: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Button(
-            onClick = onBook,
-            modifier = Modifier.weight(1f),
-            enabled = canCreate,
-            contentPadding = PaddingValues(
-                horizontal = 12.dp,
-                vertical = 8.dp,
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = stringResource(R.string.book_from_date),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(start = 5.dp),
-            )
-        }
-
-        OutlinedButton(
-            onClick = onBlock,
-            modifier = Modifier.weight(1f),
-            enabled = canCreate,
-            contentPadding = PaddingValues(
-                horizontal = 12.dp,
-                vertical = 8.dp,
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Block,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = stringResource(R.string.block_from_date),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(start = 5.dp),
-            )
-        }
     }
 }
 
