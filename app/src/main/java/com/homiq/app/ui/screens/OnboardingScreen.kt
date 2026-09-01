@@ -27,18 +27,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -77,6 +77,15 @@ fun OnboardingScreen(
     var waitingForGoogle by rememberSaveable { mutableStateOf(false) }
     var syncErrorRes by rememberSaveable { mutableStateOf<Int?>(null) }
 
+    fun updatePinSetup(enabled: Boolean) {
+        setupPin = enabled
+        pinError = false
+        if (!enabled) {
+            pin = ""
+            confirmPin = ""
+        }
+    }
+
     val authorizationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult(),
     ) { result ->
@@ -103,6 +112,7 @@ fun OnboardingScreen(
             pinError = true
             return false
         }
+
         return if (setupPin) {
             appLockViewModel.setPin(pin).also { saved ->
                 pinError = !saved
@@ -155,14 +165,14 @@ fun OnboardingScreen(
             LanguageToggle(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 8.dp),
+                    .padding(top = 6.dp),
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(top = 70.dp, bottom = 24.dp),
+                    .padding(top = 82.dp, bottom = 30.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Column(
@@ -180,23 +190,24 @@ fun OnboardingScreen(
                             .clip(RoundedCornerShape(34.dp)),
                     )
 
-                    Spacer(Modifier.height(22.dp))
+                    Spacer(Modifier.height(20.dp))
 
                     Text(
                         text = stringResource(R.string.onboarding_login_title),
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                     )
+
                     Text(
                         text = stringResource(R.string.onboarding_login_subtitle),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp),
+                        modifier = Modifier.padding(top = 6.dp),
                     )
 
-                    Spacer(Modifier.height(34.dp))
+                    Spacer(Modifier.height(30.dp))
 
                     Button(
                         onClick = {
@@ -204,6 +215,7 @@ fun OnboardingScreen(
                                 pinError = true
                                 return@Button
                             }
+
                             pinError = false
                             syncErrorRes = null
                             waitingForGoogle = true
@@ -224,7 +236,7 @@ fun OnboardingScreen(
                             Spacer(Modifier.size(9.dp))
                             Text(stringResource(R.string.onboarding_google_progress))
                         } else {
-                            androidx.compose.material3.Icon(
+                            Icon(
                                 imageVector = Icons.Outlined.CloudDone,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
@@ -234,7 +246,9 @@ fun OnboardingScreen(
                         }
                     }
 
-                    TextButton(
+                    Spacer(Modifier.height(14.dp))
+
+                    OutlinedButton(
                         onClick = {
                             if (persistPinIfRequested()) {
                                 onFinished()
@@ -243,7 +257,7 @@ fun OnboardingScreen(
                         enabled = !waitingForGoogle && !syncState.runtime.isSyncing,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .height(52.dp),
                     ) {
                         Text(stringResource(R.string.onboarding_continue_without_account))
                     }
@@ -253,7 +267,7 @@ fun OnboardingScreen(
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .padding(top = 10.dp),
                             shape = MaterialTheme.shapes.medium,
                             color = MaterialTheme.colorScheme.errorContainer,
                         ) {
@@ -266,7 +280,7 @@ fun OnboardingScreen(
                         }
                     }
 
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(24.dp))
 
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -278,47 +292,38 @@ fun OnboardingScreen(
                         ),
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        setupPin = !setupPin
-                                        pinError = false
-                                        if (!setupPin) {
-                                            pin = ""
-                                            confirmPin = ""
-                                        }
+                                        updatePinSetup(!setupPin)
                                     },
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Checkbox(
-                                    checked = setupPin,
-                                    onCheckedChange = { checked ->
-                                        setupPin = checked
-                                        pinError = false
-                                        if (!checked) {
-                                            pin = ""
-                                            confirmPin = ""
-                                        }
-                                    },
-                                )
                                 Column(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .padding(start = 4.dp),
+                                        .padding(end = 12.dp),
                                 ) {
                                     Text(
                                         text = stringResource(R.string.onboarding_setup_pin_checkbox),
                                         style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
                                     )
                                     Text(
                                         text = stringResource(R.string.onboarding_setup_pin_hint),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(top = 2.dp),
                                     )
                                 }
+
+                                Switch(
+                                    checked = setupPin,
+                                    onCheckedChange = ::updatePinSetup,
+                                )
                             }
 
                             if (setupPin) {
@@ -337,8 +342,9 @@ fun OnboardingScreen(
                                     isError = pinError,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 10.dp),
+                                        .padding(top = 12.dp),
                                 )
+
                                 OutlinedTextField(
                                     value = confirmPin,
                                     onValueChange = {
@@ -356,6 +362,7 @@ fun OnboardingScreen(
                                         .fillMaxWidth()
                                         .padding(top = 10.dp),
                                 )
+
                                 if (pinError) {
                                     Text(
                                         text = stringResource(R.string.onboarding_pin_error_compact),
@@ -373,7 +380,12 @@ fun OnboardingScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 18.dp, start = 8.dp, end = 8.dp),
+                        modifier = Modifier.padding(
+                            top = 20.dp,
+                            start = 10.dp,
+                            end = 10.dp,
+                            bottom = 6.dp,
+                        ),
                     )
                 }
             }
@@ -395,12 +407,12 @@ private fun LanguageToggle(
 
     Surface(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
@@ -409,11 +421,13 @@ private fun LanguageToggle(
                 selected = language != "ms",
                 onClick = { setLanguage("en") },
             )
+
             Text(
                 text = "|",
                 color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
             )
+
             LanguageToken(
                 text = "MY",
                 selected = language == "ms",
@@ -433,7 +447,7 @@ private fun LanguageToken(
         text = text,
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 9.dp, vertical = 7.dp),
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
         color = if (selected) {
