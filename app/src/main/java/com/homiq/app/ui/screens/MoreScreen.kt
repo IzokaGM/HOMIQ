@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
@@ -48,7 +49,9 @@ import com.homiq.app.BuildConfig
 import com.homiq.app.R
 import com.homiq.app.data.preferences.AppearanceMode
 import com.homiq.app.data.preferences.AppearancePreferences
+import com.homiq.app.data.preferences.TextSizeMode
 import com.homiq.app.ui.components.HomikaBrandMark
+import com.homiq.app.ui.theme.LocalHomikaTextSize
 
 @Composable
 fun MoreScreen(
@@ -69,15 +72,24 @@ fun MoreScreen(
     } else {
         explicitLocales.substringBefore(",").substringBefore("-")
     }
-    val appearancePreferences = remember(context) { AppearancePreferences(context.applicationContext) }
-    var appearanceMode by remember { mutableStateOf(appearancePreferences.mode) }
+    val isMalay = currentLanguage == "ms"
+
+    val appearancePreferences = remember(context) {
+        AppearancePreferences(context.applicationContext)
+    }
+    var appearanceMode by remember {
+        mutableStateOf(appearancePreferences.mode)
+    }
+
+    val textSizeController = LocalHomikaTextSize.current
+    val textSizeMode = textSizeController.mode
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         CompactHeader()
 
@@ -177,6 +189,33 @@ fun MoreScreen(
                     },
                 )
             }
+            CompactDivider()
+            SelectorSettingRow(
+                icon = Icons.Outlined.FormatSize,
+                title = if (isMalay) "Saiz teks" else "Text size",
+            ) {
+                TinyChoice(
+                    label = "A−",
+                    selected = textSizeMode == TextSizeMode.SMALL,
+                    onClick = {
+                        textSizeController.setMode(TextSizeMode.SMALL)
+                    },
+                )
+                TinyChoice(
+                    label = "A",
+                    selected = textSizeMode == TextSizeMode.STANDARD,
+                    onClick = {
+                        textSizeController.setMode(TextSizeMode.STANDARD)
+                    },
+                )
+                TinyChoice(
+                    label = "A+",
+                    selected = textSizeMode == TextSizeMode.LARGE,
+                    onClick = {
+                        textSizeController.setMode(TextSizeMode.LARGE)
+                    },
+                )
+            }
         }
 
         Surface(
@@ -185,10 +224,13 @@ fun MoreScreen(
                 .clickable(onClick = onCheckUpdates),
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.65f),
+            ),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -252,7 +294,7 @@ private fun CompactSection(
     title: String,
     content: @Composable () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
@@ -263,10 +305,11 @@ private fun CompactSection(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+            ),
         ) {
-            // Surface lays siblings in a Box by default. A Column is mandatory here;
-            // otherwise multiple settings are drawn on top of one another.
             Column(content = { content() })
         }
     }
@@ -284,7 +327,10 @@ private fun CompactSettingRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = if (supporting == null) 9.dp else 7.dp),
+            .padding(
+                horizontal = 12.dp,
+                vertical = if (supporting == null) 8.dp else 6.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -326,7 +372,7 @@ private fun CompactSettingRow(
             )
         } else {
             Icon(
-                Icons.Outlined.ChevronRight,
+                imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
@@ -344,7 +390,7 @@ private fun SelectorSettingRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -365,6 +411,7 @@ private fun SelectorSettingRow(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f),
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -384,15 +431,30 @@ private fun TinyChoice(
     Surface(
         modifier = Modifier.clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-        border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)) else null,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        border = if (selected) {
+            BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
+            )
+        } else {
+            null
+        },
     ) {
         Text(
             text = label,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             maxLines = 1,
         )
     }
@@ -407,5 +469,7 @@ private fun CompactDivider() {
 }
 
 private fun setHomikaLanguage(languageTag: String) {
-    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(languageTag))
+    AppCompatDelegate.setApplicationLocales(
+        LocaleListCompat.forLanguageTags(languageTag),
+    )
 }

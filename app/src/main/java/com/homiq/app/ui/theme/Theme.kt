@@ -7,7 +7,18 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.homiq.app.data.preferences.TextSizeMode
+import com.homiq.app.data.preferences.TextSizePreferences
 
 private val LightColors = lightColorScheme(
     primary = HomikaTeal,
@@ -56,15 +67,55 @@ private val HomikaShapes = Shapes(
     extraLarge = RoundedCornerShape(24.dp),
 )
 
+data class HomikaTextSizeController(
+    val mode: TextSizeMode,
+    val setMode: (TextSizeMode) -> Unit,
+)
+
+val LocalHomikaTextSize = staticCompositionLocalOf<HomikaTextSizeController> {
+    error("Homika text-size controller is not available")
+}
+
 @Composable
 fun HomiqTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = HomikaTypography,
-        shapes = HomikaShapes,
-        content = content,
+    val context = LocalContext.current
+    val textSizePreferences = remember(context) {
+        TextSizePreferences(context.applicationContext)
+    }
+    var textSizeMode by remember {
+        mutableStateOf(textSizePreferences.mode)
+    }
+    val systemDensity = LocalDensity.current
+    val homikaDensity = remember(
+        systemDensity.density,
+        systemDensity.fontScale,
+        textSizeMode,
+    ) {
+        Density(
+            density = systemDensity.density,
+            fontScale = systemDensity.fontScale * textSizeMode.scale,
+        )
+    }
+    val textSizeController = HomikaTextSizeController(
+        mode = textSizeMode,
+        setMode = { mode ->
+            textSizePreferences.set(mode)
+            textSizeMode = mode
+        },
     )
+
+    CompositionLocalProvider(
+        LocalDensity provides homikaDensity,
+        LocalHomikaTextSize provides textSizeController,
+    ) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = HomikaTypography,
+            shapes = HomikaShapes,
+            content = content,
+        )
+    }
 }

@@ -976,3 +976,16 @@ Expected repository state after Phase 11 files are uploaded:
 - First debug -> release transition requires backup/sync + uninstall because debug and release signatures intentionally differ.
 - After release v1.0.0 is installed, future stable-release APKs update in place and keep local data.
 - Updater end-to-end proof target: release v1.0.0 -> publish v1.0.1 -> update from inside Homika -> verify data retained.
+
+## Homika v1.0.1 — Typography normalization & text-size control
+
+- Normalized the Material 3 typography scale so page headers and supporting text stay visually consistent with the compact More screen.
+- Standard mode is the professional compact baseline for Homika.
+- Added persistent app-level text-size control in More: `A− | A | A+`.
+- Text-size choices map to Small (0.90x), Standard (1.00x) and Large (1.12x).
+- App text scaling is applied at the root Compose density while preserving Android device density, so it affects Material typography and explicit `sp` text consistently across every Homika screen.
+- The app-level scale multiplies the user's Android system font scale instead of replacing accessibility settings.
+- Text-size changes apply live and persist across restarts.
+- More remains compact with reduced vertical spacing so the new control does not unnecessarily expand the page.
+- No database migration, sync protocol change, booking/payment logic change, signing change or OAuth change.
+- Intended updater proof release: v1.0.1 / versionCode 10001 after build validation.
