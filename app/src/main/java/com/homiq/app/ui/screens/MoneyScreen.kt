@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -59,13 +60,19 @@ fun MoneyScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 18.dp, end = 16.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            top = 10.dp,
+            end = 16.dp,
+            bottom = 80.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
             ScreenHeader(
                 title = stringResource(R.string.money_title),
                 subtitle = stringResource(R.string.money_live_subtitle),
+                compact = true,
             )
         }
         item {
@@ -83,8 +90,8 @@ fun MoneyScreen(
                 color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
                     Text(
                         stringResource(R.string.money_month_summary),
@@ -93,7 +100,7 @@ fun MoneyScreen(
                     )
                     Text(
                         formatSenAsRinggit(state.netIncomeSen, locale),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -105,17 +112,19 @@ fun MoneyScreen(
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         MetricCard(
                             label = stringResource(R.string.revenue),
                             value = formatSenAsRinggit(state.revenueSen, locale),
                             modifier = Modifier.weight(1f),
+                            compact = true,
                         )
                         MetricCard(
                             label = stringResource(R.string.expenses),
                             value = formatSenAsRinggit(state.expensesSen, locale),
                             modifier = Modifier.weight(1f),
+                            compact = true,
                         )
                     }
                 }
@@ -124,25 +133,50 @@ fun MoneyScreen(
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Button(onClick = onAddExpense, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Add, contentDescription = null)
-                    Text(stringResource(R.string.add_expense), modifier = Modifier.padding(start = 6.dp), maxLines = 1)
+                Button(
+                    onClick = onAddExpense,
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(
+                        stringResource(R.string.add_expense),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 5.dp),
+                        maxLines = 1,
+                    )
                 }
-                OutlinedButton(onClick = onReportsClick, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.QueryStats, contentDescription = null)
-                    Text(stringResource(R.string.view_reports), modifier = Modifier.padding(start = 6.dp), maxLines = 1)
+                OutlinedButton(
+                    onClick = onReportsClick,
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Icon(Icons.Outlined.QueryStats, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(
+                        stringResource(R.string.view_reports),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 5.dp),
+                        maxLines = 1,
+                    )
                 }
             }
         }
-        item { SectionHeader(title = stringResource(R.string.property_breakdown)) }
+
+        item {
+            SectionHeader(
+                title = stringResource(R.string.property_breakdown),
+                compact = true,
+            )
+        }
         if (state.breakdown.isEmpty()) {
             item {
                 EmptyStateCard(
                     title = stringResource(R.string.no_money_activity),
                     body = stringResource(R.string.no_money_activity_body),
                     icon = Icons.Outlined.ReceiptLong,
+                    compact = true,
                 )
             }
         } else {
@@ -153,30 +187,44 @@ fun MoneyScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 ) {
                     Column(
-                        modifier = Modifier.padding(15.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
                     ) {
                         Text(
-                            text = if (row.propertyId == null) stringResource(R.string.general_expense) else row.propertyName.ifBlank { stringResource(R.string.unknown_property) },
-                            style = MaterialTheme.typography.titleMedium,
+                            text = if (row.propertyId == null) {
+                                stringResource(R.string.general_expense)
+                            } else {
+                                row.propertyName.ifBlank { stringResource(R.string.unknown_property) }
+                            },
+                            style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         MoneyLine(stringResource(R.string.revenue), formatSenAsRinggit(row.revenueSen, locale))
                         MoneyLine(stringResource(R.string.expenses), formatSenAsRinggit(row.expensesSen, locale))
-                        MoneyLine(stringResource(R.string.net_income), formatSenAsRinggit(row.netIncomeSen, locale), true)
+                        MoneyLine(
+                            stringResource(R.string.net_income),
+                            formatSenAsRinggit(row.netIncomeSen, locale),
+                            true,
+                        )
                     }
                 }
             }
         }
 
-        item { SectionHeader(title = stringResource(R.string.expense_history)) }
+        item {
+            SectionHeader(
+                title = stringResource(R.string.expense_history),
+                compact = true,
+            )
+        }
         if (state.expenses.isEmpty()) {
             item {
                 EmptyStateCard(
                     title = stringResource(R.string.no_expenses_this_month),
                     body = stringResource(R.string.no_expenses_this_month_body),
                     icon = Icons.Outlined.ReceiptLong,
+                    compact = true,
                 )
             }
         } else {
@@ -187,14 +235,23 @@ fun MoneyScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 ) {
                     Row(
-                        modifier = Modifier.padding(15.dp),
+                        modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(stringResource(expense.category.labelRes()), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(1.dp),
+                        ) {
                             Text(
-                                expense.propertyId?.let { propertyNames[it] } ?: stringResource(R.string.general_expense),
+                                stringResource(expense.category.labelRes()),
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                expense.propertyId?.let { propertyNames[it] }
+                                    ?: stringResource(R.string.general_expense),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -202,13 +259,13 @@ fun MoneyScreen(
                             )
                             Text(
                                 formatEpochDay(expense.expenseDateEpochDay, locale),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Text(
                             formatSenAsRinggit(expense.amountSen, locale),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.error,
                             maxLines = 1,
                         )
@@ -233,33 +290,55 @@ private fun MonthSelector(
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onPrevious) { Icon(Icons.Outlined.ChevronLeft, contentDescription = null) }
+            IconButton(onClick = onPrevious) {
+                Icon(Icons.Outlined.ChevronLeft, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            androidx.compose.material3.TextButton(onClick = onCurrent) {
-                Text(stringResource(R.string.current_month), maxLines = 1)
+            androidx.compose.material3.TextButton(
+                onClick = onCurrent,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+            ) {
+                Text(
+                    stringResource(R.string.current_month),
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                )
             }
-            IconButton(onClick = onNext) { Icon(Icons.Outlined.ChevronRight, contentDescription = null) }
+            IconButton(onClick = onNext) {
+                Icon(Icons.Outlined.ChevronRight, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun MoneyLine(label: String, value: String, emphasized: Boolean = false) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun MoneyLine(
+    label: String,
+    value: String,
+    emphasized: Boolean = false,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text(
             value,
-            style = if (emphasized) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+            style = if (emphasized) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodySmall,
             fontWeight = if (emphasized) FontWeight.SemiBold else FontWeight.Normal,
             maxLines = 1,
         )

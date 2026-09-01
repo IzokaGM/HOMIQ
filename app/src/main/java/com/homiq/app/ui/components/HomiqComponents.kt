@@ -52,15 +52,16 @@ fun ScreenHeader(
     subtitle: String,
     modifier: Modifier = Modifier,
     eyebrow: String? = null,
+    compact: Boolean = false,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 5.dp),
     ) {
         if (!eyebrow.isNullOrBlank()) {
             Text(
                 text = eyebrow.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
+                style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -68,14 +69,16 @@ fun ScreenHeader(
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
+            style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
         if (subtitle.isNotBlank()) {
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
+                style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = if (compact) 2 else Int.MAX_VALUE,
+                overflow = if (compact) TextOverflow.Ellipsis else TextOverflow.Clip,
             )
         }
     }
@@ -87,6 +90,7 @@ fun SectionHeader(
     modifier: Modifier = Modifier,
     action: String? = null,
     onAction: (() -> Unit)? = null,
+    compact: Boolean = false,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -95,18 +99,21 @@ fun SectionHeader(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f),
         )
         if (action != null) {
             if (onAction != null) {
                 androidx.compose.material3.TextButton(onClick = onAction) {
-                    Text(action)
+                    Text(
+                        text = action,
+                        style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelLarge,
+                    )
                 }
             } else {
                 Text(
                     text = action,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -120,6 +127,7 @@ fun MetricCard(
     value: String,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
+    compact: Boolean = false,
 ) {
     Surface(
         modifier = modifier,
@@ -131,19 +139,22 @@ fun MetricCard(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(
+                horizontal = if (compact) 12.dp else 15.dp,
+                vertical = if (compact) 10.dp else 14.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 3.dp else 6.dp),
         ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
+                style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
@@ -168,10 +179,11 @@ fun EmptyStateCard(
     body: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = if (compact) MaterialTheme.shapes.large else MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
@@ -179,30 +191,41 @@ fun EmptyStateCard(
         ),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(if (compact) 12.dp else 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(13.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 13.dp),
         ) {
             Surface(
-                shape = MaterialTheme.shapes.large,
+                shape = if (compact) MaterialTheme.shapes.medium else MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(11.dp),
+                    modifier = if (compact) {
+                        Modifier.padding(8.dp).size(18.dp)
+                    } else {
+                        Modifier.padding(11.dp)
+                    },
                 )
             }
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(if (compact) 1.dp else 3.dp),
             ) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = title,
+                    style = if (compact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
+                    maxLines = if (compact) 1 else Int.MAX_VALUE,
+                    overflow = if (compact) TextOverflow.Ellipsis else TextOverflow.Clip,
+                )
                 Text(
                     text = body,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (compact) 2 else Int.MAX_VALUE,
+                    overflow = if (compact) TextOverflow.Ellipsis else TextOverflow.Clip,
                 )
             }
         }

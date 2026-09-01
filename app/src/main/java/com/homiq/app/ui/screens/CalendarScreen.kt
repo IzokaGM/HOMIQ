@@ -49,7 +49,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.local.entity.BlockedDateEntity
 import com.homiq.app.data.local.entity.BookingEntity
-import com.homiq.app.data.local.entity.PropertyEntity
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.domain.CalendarRules
 import com.homiq.app.ui.components.EmptyStateCard
@@ -85,72 +84,36 @@ fun CalendarScreen(
     val configuration = LocalConfiguration.current
     val locale = configuration.locales[0]
     val today = remember { LocalDate.now() }
-
-    var selectedPropertyId by remember {
-        mutableStateOf<String?>(null)
-    }
-    var selectedDay by remember {
-        mutableLongStateOf(today.toEpochDay())
-    }
+    var selectedPropertyId by remember { mutableStateOf<String?>(null) }
+    var selectedDay by remember { mutableLongStateOf(today.toEpochDay()) }
 
     LaunchedEffect(state.month) {
-        if (
-            YearMonth.from(
-                LocalDate.ofEpochDay(selectedDay),
-            ) != state.month
-        ) {
+        if (YearMonth.from(LocalDate.ofEpochDay(selectedDay)) != state.month) {
             selectedDay = state.month.atDay(1).toEpochDay()
         }
     }
 
-    val propertyOptions = remember(
-        state.properties,
-        locale,
-    ) {
+    val propertyOptions = remember(state.properties, locale) {
         buildList {
-            add(
-                CalendarPropertyOption(
-                    id = null,
-                    name = "",
-                ),
-            )
+            add(CalendarPropertyOption(id = null, name = ""))
             state.properties
                 .filter { !it.isDeleted }
                 .forEach {
-                    add(
-                        CalendarPropertyOption(
-                            id = it.id,
-                            name = it.name,
-                        ),
-                    )
+                    add(CalendarPropertyOption(id = it.id, name = it.name))
                 }
         }
     }
-
-    val filteredBookings = remember(
-        state.bookings,
-        selectedPropertyId,
-    ) {
+    val filteredBookings = remember(state.bookings, selectedPropertyId) {
         state.bookings.filter {
-            selectedPropertyId == null ||
-                it.propertyId == selectedPropertyId
+            selectedPropertyId == null || it.propertyId == selectedPropertyId
         }
     }
-
-    val filteredBlocks = remember(
-        state.blockedDates,
-        selectedPropertyId,
-    ) {
+    val filteredBlocks = remember(state.blockedDates, selectedPropertyId) {
         state.blockedDates.filter {
-            selectedPropertyId == null ||
-                it.propertyId == selectedPropertyId
+            selectedPropertyId == null || it.propertyId == selectedPropertyId
         }
     }
-
-    val selectedBookings = remember(
-        filteredBookings,
-        selectedDay,
-    ) {
+    val selectedBookings = remember(filteredBookings, selectedDay) {
         filteredBookings.filter {
             CalendarRules.containsDay(
                 startEpochDay = it.checkInEpochDay,
@@ -159,11 +122,7 @@ fun CalendarScreen(
             )
         }
     }
-
-    val selectedBlocks = remember(
-        filteredBlocks,
-        selectedDay,
-    ) {
+    val selectedBlocks = remember(filteredBlocks, selectedDay) {
         filteredBlocks.filter {
             CalendarRules.containsDay(
                 startEpochDay = it.startEpochDay,
@@ -172,54 +131,38 @@ fun CalendarScreen(
             )
         }
     }
-
     val propertyNames = remember(state.properties) {
-        state.properties.associate {
-            it.id to it.name
-        }
+        state.properties.associate { it.id to it.name }
     }
-
     val monthTitle = remember(state.month, locale) {
         state.month.format(
-            DateTimeFormatter.ofPattern(
-                "MMMM yyyy",
-                locale,
-            ),
+            DateTimeFormatter.ofPattern("MMMM yyyy", locale),
         )
     }.replaceFirstChar {
-        if (it.isLowerCase()) {
-            it.titlecase(locale)
-        } else {
-            it.toString()
-        }
+        if (it.isLowerCase()) it.titlecase(locale) else it.toString()
     }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
-            top = 18.dp,
+            top = 10.dp,
             end = 16.dp,
-            bottom = 88.dp,
+            bottom = 80.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
             ScreenHeader(
                 title = stringResource(R.string.calendar_title),
-                subtitle = stringResource(
-                    R.string.calendar_live_subtitle,
-                ),
+                subtitle = stringResource(R.string.calendar_live_subtitle),
+                compact = true,
             )
         }
-
         item {
-            val selectedOption = propertyOptions
-                .firstOrNull {
-                    it.id == selectedPropertyId
-                }
-                ?: propertyOptions.first()
-
+            val selectedOption = propertyOptions.firstOrNull {
+                it.id == selectedPropertyId
+            } ?: propertyOptions.first()
             SelectionField(
                 label = stringResource(R.string.property_filter),
                 selectedText = if (selectedOption.id == null) {
@@ -229,19 +172,12 @@ fun CalendarScreen(
                 },
                 options = propertyOptions,
                 optionText = {
-                    if (it.id == null) {
-                        stringResource(R.string.all_properties)
-                    } else {
-                        it.name
-                    }
+                    if (it.id == null) stringResource(R.string.all_properties) else it.name
                 },
-                onSelected = {
-                    selectedPropertyId = it.id
-                },
+                onSelected = { selectedPropertyId = it.id },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-
         item {
             Surface(
                 shape = MaterialTheme.shapes.extraLarge,
@@ -249,149 +185,118 @@ fun CalendarScreen(
                 tonalElevation = 1.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(
-                            onClick = viewModel::previousMonth,
-                        ) {
+                        IconButton(onClick = viewModel::previousMonth) {
                             Icon(
-                                imageVector =
-                                    Icons.Outlined.ChevronLeft,
-                                contentDescription = stringResource(
-                                    R.string.previous_month,
-                                ),
+                                imageVector = Icons.Outlined.ChevronLeft,
+                                contentDescription = stringResource(R.string.previous_month),
+                                modifier = Modifier.size(20.dp),
                             )
                         }
-
                         Text(
                             text = monthTitle,
-                            style =
-                                MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f),
                         )
-
-                        IconButton(
-                            onClick = viewModel::nextMonth,
-                        ) {
+                        IconButton(onClick = viewModel::nextMonth) {
                             Icon(
-                                imageVector =
-                                    Icons.Outlined.ChevronRight,
-                                contentDescription = stringResource(
-                                    R.string.next_month,
-                                ),
+                                imageVector = Icons.Outlined.ChevronRight,
+                                contentDescription = stringResource(R.string.next_month),
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
-
                     MonthGrid(
                         month = state.month,
                         today = today,
                         selectedDay = selectedDay,
                         bookings = filteredBookings,
                         blocks = filteredBlocks,
-                        onDayClick = {
-                            selectedDay = it
-                        },
+                        onDayClick = { selectedDay = it },
                     )
-
                     TextButton(
                         onClick = {
                             selectedDay = today.toEpochDay()
                             viewModel.goToToday()
                         },
                         modifier = Modifier.align(Alignment.CenterHorizontally),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                     ) {
-                        Text(stringResource(R.string.go_to_today))
+                        Text(
+                            stringResource(R.string.go_to_today),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
             }
         }
-
-        item {
-            CalendarLegend()
-        }
-
+        item { CalendarLegend() }
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Button(
                     onClick = {
-                        onNewBooking(
-                            selectedDay,
-                            selectedPropertyId,
-                        )
+                        onNewBooking(selectedDay, selectedPropertyId)
                     },
                     modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Add,
                         contentDescription = null,
+                        modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = stringResource(
-                            R.string.book_from_date,
-                        ),
-                        modifier = Modifier.padding(start = 6.dp),
+                        text = stringResource(R.string.book_from_date),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 5.dp),
                     )
                 }
-
                 OutlinedButton(
                     onClick = {
-                        onBlockDate(
-                            selectedDay,
-                            selectedPropertyId,
-                        )
+                        onBlockDate(selectedDay, selectedPropertyId)
                     },
                     modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Block,
                         contentDescription = null,
+                        modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = stringResource(
-                            R.string.block_from_date,
-                        ),
-                        modifier = Modifier.padding(start = 6.dp),
+                        text = stringResource(R.string.block_from_date),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 5.dp),
                     )
                 }
             }
         }
-
         item {
             Text(
                 text = stringResource(
                     R.string.selected_date_title,
-                    formatEpochDay(
-                        selectedDay,
-                        locale,
-                    ),
+                    formatEpochDay(selectedDay, locale),
                 ),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
             )
         }
-
-        if (
-            selectedBookings.isEmpty() &&
-            selectedBlocks.isEmpty()
-        ) {
+        if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
             item {
                 EmptyStateCard(
-                    title = stringResource(
-                        R.string.date_available,
-                    ),
-                    body = stringResource(
-                        R.string.date_available_body,
-                    ),
+                    title = stringResource(R.string.date_available),
+                    body = stringResource(R.string.date_available_body),
                     icon = Icons.Outlined.Event,
+                    compact = true,
                 )
             }
         } else {
@@ -401,24 +306,17 @@ fun CalendarScreen(
             ) { booking ->
                 CalendarBookingRow(
                     booking = booking,
-                    propertyName = propertyNames[
-                        booking.propertyId
-                    ].orEmpty(),
-                    onClick = {
-                        onBookingClick(booking.id)
-                    },
+                    propertyName = propertyNames[booking.propertyId].orEmpty(),
+                    onClick = { onBookingClick(booking.id) },
                 )
             }
-
             items(
                 items = selectedBlocks,
                 key = { "block-${it.id}" },
             ) { block ->
                 CalendarBlockRow(
                     block = block,
-                    propertyName = propertyNames[
-                        block.propertyId
-                    ].orEmpty(),
+                    propertyName = propertyNames[block.propertyId].orEmpty(),
                 )
             }
         }
@@ -441,30 +339,22 @@ private fun MonthGrid(
         val weekCount = (usedCells + 6) / 7
         List(weekCount * 7) { index ->
             val day = index - firstDayOffset + 1
-            if (day in 1..month.lengthOfMonth()) {
-                month.atDay(day)
-            } else {
-                null
-            }
+            if (day in 1..month.lengthOfMonth()) month.atDay(day) else null
         }
     }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             weekdays.forEach { label ->
                 Text(
                     text = label,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    color =
-                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
             }
         }
-
         cells.chunked(7).forEach { week ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 week.forEach { date ->
@@ -492,16 +382,13 @@ private fun MonthGrid(
                                 epoch,
                             )
                         }
-
                         DayCell(
                             day = date.dayOfMonth,
                             isToday = isToday,
                             isSelected = isSelected,
                             hasBooking = hasBooking,
                             hasBlock = hasBlock,
-                            onClick = {
-                                onDayClick(epoch)
-                            },
+                            onClick = { onDayClick(epoch) },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -522,66 +409,41 @@ private fun DayCell(
     modifier: Modifier = Modifier,
 ) {
     val container = when {
-        isSelected ->
-            MaterialTheme.colorScheme.primaryContainer
-        hasBlock ->
-            MaterialTheme.colorScheme.surfaceVariant
-        hasBooking ->
-            MaterialTheme.colorScheme.secondaryContainer
-        else ->
-            MaterialTheme.colorScheme.surface
+        isSelected -> MaterialTheme.colorScheme.primaryContainer
+        hasBlock -> MaterialTheme.colorScheme.surfaceVariant
+        hasBooking -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surface
     }
-
-    val border = when {
-        isToday ->
-            BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.primary,
-            )
-        else -> null
+    val border = if (isToday) {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    } else {
+        null
     }
 
     Surface(
         modifier = modifier
             .aspectRatio(1f)
-            .padding(2.dp)
+            .padding(1.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
         color = container,
         border = border,
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             Text(
                 text = day.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (isToday || isSelected) {
-                    FontWeight.Bold
-                } else {
-                    FontWeight.Normal
-                },
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal,
             )
-
             if (hasBooking || hasBlock) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        3.dp,
-                    ),
+                        .padding(bottom = 3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    if (hasBooking) {
-                        EventDot(
-                            booked = true,
-                        )
-                    }
-                    if (hasBlock) {
-                        EventDot(
-                            booked = false,
-                        )
-                    }
+                    if (hasBooking) EventDot(booked = true)
+                    if (hasBlock) EventDot(booked = false)
                 }
             }
         }
@@ -589,11 +451,9 @@ private fun DayCell(
 }
 
 @Composable
-private fun EventDot(
-    booked: Boolean,
-) {
+private fun EventDot(booked: Boolean) {
     Surface(
-        modifier = Modifier.size(5.dp),
+        modifier = Modifier.size(4.dp),
         shape = CircleShape,
         color = if (booked) {
             MaterialTheme.colorScheme.primary
@@ -607,7 +467,7 @@ private fun EventDot(
 private fun CalendarLegend() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         LegendItem(
             booked = true,
@@ -627,12 +487,12 @@ private fun LegendItem(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         EventDot(booked = booked)
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -645,53 +505,46 @@ private fun CalendarBookingRow(
     onClick: () -> Unit,
 ) {
     val statusColor = when (booking.status) {
-        BookingStatus.PENDING ->
-            MaterialTheme.colorScheme.tertiaryContainer
-        BookingStatus.CONFIRMED ->
-            MaterialTheme.colorScheme.primaryContainer
-        BookingStatus.CHECKED_IN ->
-            MaterialTheme.colorScheme.secondaryContainer
-        BookingStatus.CHECKED_OUT ->
-            MaterialTheme.colorScheme.surfaceVariant
-        BookingStatus.CANCELLED ->
-            MaterialTheme.colorScheme.surfaceVariant
+        BookingStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
+        BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.primaryContainer
+        BookingStatus.CHECKED_IN -> MaterialTheme.colorScheme.secondaryContainer
+        BookingStatus.CHECKED_OUT -> MaterialTheme.colorScheme.surfaceVariant
+        BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceVariant
     }
-
     Surface(
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         color = statusColor,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
                 imageVector = Icons.Outlined.HomeWork,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 Text(
                     text = booking.guestName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
                     text = propertyName,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
             Text(
-                text = stringResource(
-                    booking.status.labelRes(),
-                ),
-                style = MaterialTheme.typography.labelLarge,
+                text = stringResource(booking.status.labelRes()),
+                style = MaterialTheme.typography.labelSmall,
             )
         }
     }
@@ -703,25 +556,24 @@ private fun CalendarBlockRow(
     propertyName: String,
 ) {
     Surface(
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Block,
                 contentDescription = null,
+                modifier = Modifier.size(18.dp),
             )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(
                     text = stringResource(R.string.blocked),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
                     text = buildString {
@@ -731,7 +583,7 @@ private fun CalendarBlockRow(
                             append(it)
                         }
                     },
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }

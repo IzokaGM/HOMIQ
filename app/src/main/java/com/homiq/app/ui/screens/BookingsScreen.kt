@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,7 +55,6 @@ fun BookingsScreen(
     val locale = LocalConfiguration.current.locales[0]
     val today = LocalDate.now().toEpochDay()
     val propertyNames = remember(properties) { properties.associate { it.id to it.name } }
-
     var selectedFilter by remember { mutableIntStateOf(0) }
     val filters = listOf(
         stringResource(R.string.filter_all),
@@ -65,7 +65,10 @@ fun BookingsScreen(
     val filtered = remember(bookings, selectedFilter, today) {
         when (selectedFilter) {
             1 -> bookings.filter { it.status != BookingStatus.CANCELLED && it.checkOutEpochDay > today }
-            2 -> bookings.filter { it.status == BookingStatus.CHECKED_OUT || (it.status != BookingStatus.CANCELLED && it.checkOutEpochDay <= today) }
+            2 -> bookings.filter {
+                it.status == BookingStatus.CHECKED_OUT ||
+                    (it.status != BookingStatus.CANCELLED && it.checkOutEpochDay <= today)
+            }
             3 -> bookings.filter { it.status == BookingStatus.CANCELLED }
             else -> bookings
         }
@@ -73,36 +76,52 @@ fun BookingsScreen(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 18.dp, end = 16.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            top = 10.dp,
+            end = 16.dp,
+            bottom = 80.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
             ScreenHeader(
                 title = stringResource(R.string.bookings_title),
                 subtitle = stringResource(R.string.bookings_count, filtered.size),
+                compact = true,
             )
         }
         item {
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 filters.forEachIndexed { index, label ->
                     FilterChip(
                         selected = selectedFilter == index,
                         onClick = { selectedFilter = index },
-                        label = { Text(label, maxLines = 1) },
+                        label = {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1,
+                            )
+                        },
                     )
                 }
             }
         }
-
         if (filtered.isEmpty()) {
             item {
                 EmptyStateCard(
-                    title = stringResource(if (bookings.isEmpty()) R.string.bookings_empty_title else R.string.no_matching_bookings),
-                    body = stringResource(if (bookings.isEmpty()) R.string.upcoming_empty_body else R.string.change_booking_filter),
+                    title = stringResource(
+                        if (bookings.isEmpty()) R.string.bookings_empty_title else R.string.no_matching_bookings,
+                    ),
+                    body = stringResource(
+                        if (bookings.isEmpty()) R.string.upcoming_empty_body else R.string.change_booking_filter,
+                    ),
                     icon = Icons.Outlined.EventNote,
+                    compact = true,
                 )
             }
         } else {
@@ -132,18 +151,21 @@ private fun BookingListCard(
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
-            modifier = Modifier.padding(15.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
                     Text(
                         text = booking.guestName,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -157,21 +179,21 @@ private fun BookingListCard(
                 }
                 Text(
                     text = formatSenAsRinggit(booking.totalAmountSen, locale),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(
                     Icons.Outlined.CalendarMonth,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(17.dp),
                 )
                 Text(
                     text = stringResource(
@@ -179,14 +201,13 @@ private fun BookingListCard(
                         formatEpochDay(booking.checkInEpochDay, locale),
                         formatEpochDay(booking.checkOutEpochDay, locale),
                     ),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 CompactPill(stringResource(booking.source.labelRes()))
                 CompactPill(
                     text = stringResource(booking.status.labelRes()),
@@ -198,16 +219,27 @@ private fun BookingListCard(
 }
 
 @Composable
-private fun CompactPill(text: String, emphasized: Boolean = false) {
+private fun CompactPill(
+    text: String,
+    emphasized: Boolean = false,
+) {
     Surface(
         shape = MaterialTheme.shapes.small,
-        color = if (emphasized) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        color = if (emphasized) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = if (emphasized) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (emphasized) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             maxLines = 1,
         )
     }
