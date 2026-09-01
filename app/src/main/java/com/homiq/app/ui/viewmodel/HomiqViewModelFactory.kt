@@ -3,8 +3,8 @@ package com.homiq.app.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.homiq.app.data.HomiqAppContainer
-import com.homiq.app.domain.BookingManager
 import com.homiq.app.domain.BlockedDateManager
+import com.homiq.app.domain.BookingManager
 import com.homiq.app.domain.DepositManager
 import com.homiq.app.domain.ExpenseManager
 import com.homiq.app.domain.PaymentManager
@@ -13,99 +13,180 @@ class HomiqViewModelFactory(
     private val container: HomiqAppContainer,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(
+        modelClass: Class<T>,
+    ): T {
         return when {
-            modelClass.isAssignableFrom(AppLockViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                AppLockViewModel::class.java,
+            ) ->
                 AppLockViewModel(
-                    service = container.appLockService,
+                    service =
+                        container
+                            .appLockService,
                 ) as T
 
-            modelClass.isAssignableFrom(PropertyViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                PropertyViewModel::class.java,
+            ) ->
                 PropertyViewModel(
-                    properties = container.properties,
+                    properties =
+                        container.properties,
                 ) as T
 
-            modelClass.isAssignableFrom(BookingViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                BookingViewModel::class.java,
+            ) ->
                 BookingViewModel(
-                    properties = container.properties,
-                    bookings = container.bookings,
-                    blockedDates = container.blockedDates,
-                    bookingManager = BookingManager(
-                        properties = container.properties,
-                        bookings = container.bookings,
-                        blockedDates = container.blockedDates,
-                    ),
+                    properties =
+                        container.properties,
+                    bookings =
+                        container.bookings,
+                    blockedDates =
+                        container.blockedDates,
+                    bookingManager =
+                        BookingManager(
+                            properties =
+                                container.properties,
+                            bookings =
+                                container.bookings,
+                            blockedDates =
+                                container.blockedDates,
+                        ),
                 ) as T
 
-            modelClass.isAssignableFrom(CalendarViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                CalendarViewModel::class.java,
+            ) ->
                 CalendarViewModel(
-                    properties = container.properties,
-                    bookings = container.bookings,
-                    blockedDates = container.blockedDates,
+                    properties =
+                        container.properties,
+                    bookings =
+                        container.bookings,
+                    blockedDates =
+                        container.blockedDates,
                 ) as T
 
-            modelClass.isAssignableFrom(BlockedDateViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                BlockedDateViewModel::class.java,
+            ) ->
                 BlockedDateViewModel(
-                    properties = container.properties,
-                    manager = BlockedDateManager(
-                        properties = container.properties,
-                        bookings = container.bookings,
-                        blockedDates = container.blockedDates,
-                    ),
+                    properties =
+                        container.properties,
+                    manager =
+                        BlockedDateManager(
+                            properties =
+                                container.properties,
+                            bookings =
+                                container.bookings,
+                            blockedDates =
+                                container.blockedDates,
+                        ),
                 ) as T
 
-            modelClass.isAssignableFrom(FinanceViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                FinanceViewModel::class.java,
+            ) ->
                 FinanceViewModel(
-                    payments = container.payments,
-                    deposits = container.deposits,
-                    paymentManager = PaymentManager(
-                        bookings = container.bookings,
-                        payments = container.payments,
-                    ),
-                    depositManager = DepositManager(
-                        bookings = container.bookings,
-                        deposits = container.deposits,
-                    ),
+                    payments =
+                        container.payments,
+                    deposits =
+                        container.deposits,
+                    paymentManager =
+                        PaymentManager(
+                            bookings =
+                                container.bookings,
+                            payments =
+                                container.payments,
+                        ),
+                    depositManager =
+                        DepositManager(
+                            bookings =
+                                container.bookings,
+                            deposits =
+                                container.deposits,
+                        ),
                 ) as T
 
-            modelClass.isAssignableFrom(MoneyViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                MoneyViewModel::class.java,
+            ) ->
                 MoneyViewModel(
-                    propertyRepository = container.properties,
-                    expenseRepository = container.expenses,
-                    paymentRepository = container.payments,
-                    expenseManager = ExpenseManager(
-                        properties = container.properties,
-                        expenses = container.expenses,
-                    ),
+                    propertyRepository =
+                        container.properties,
+                    expenseRepository =
+                        container.expenses,
+                    paymentRepository =
+                        container.payments,
+                    expenseManager =
+                        ExpenseManager(
+                            properties =
+                                container.properties,
+                            expenses =
+                                container.expenses,
+                        ),
                 ) as T
 
-            modelClass.isAssignableFrom(DashboardViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                DashboardViewModel::class.java,
+            ) ->
                 DashboardViewModel(
-                    properties = container.properties,
-                    bookings = container.bookings,
-                    blockedDates = container.blockedDates,
-                    payments = container.payments,
-                    expenses = container.expenses,
+                    properties =
+                        container.properties,
+                    bookings =
+                        container.bookings,
+                    blockedDates =
+                        container.blockedDates,
+                    payments =
+                        container.payments,
+                    expenses =
+                        container.expenses,
                 ) as T
 
-            modelClass.isAssignableFrom(ReportsViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                ReportsViewModel::class.java,
+            ) ->
                 ReportsViewModel(
-                    properties = container.properties,
-                    bookings = container.bookings,
-                    blockedDates = container.blockedDates,
-                    payments = container.payments,
-                    expenses = container.expenses,
+                    properties =
+                        container.properties,
+                    bookings =
+                        container.bookings,
+                    blockedDates =
+                        container.blockedDates,
+                    payments =
+                        container.payments,
+                    expenses =
+                        container.expenses,
                 ) as T
 
-            modelClass.isAssignableFrom(BackupViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                BackupViewModel::class.java,
+            ) ->
                 BackupViewModel(
-                    service = container.backupService,
+                    service =
+                        container.backupService,
+                    driveService =
+                        container
+                            .driveBackupService,
+                    backupPreferences =
+                        container
+                            .backupPreferences,
+                    autoBackupService =
+                        container
+                            .autoBackupService,
+                    syncService =
+                        container.syncService,
                 ) as T
 
-            modelClass.isAssignableFrom(SyncViewModel::class.java) ->
+            modelClass.isAssignableFrom(
+                SyncViewModel::class.java,
+            ) ->
                 SyncViewModel(
-                    service = container.syncService,
-                    preferences = container.syncPreferences,
+                    service =
+                        container.syncService,
+                    preferences =
+                        container
+                            .syncPreferences,
                 ) as T
 
             else -> error(

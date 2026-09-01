@@ -11,5 +11,6 @@ class HomiqApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container.syncService.startAutoSync()
+        container.autoBackupService.start()
     }
 }

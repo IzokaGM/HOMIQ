@@ -1,16 +1,11 @@
 package com.homiq.app.data
 
 import android.content.Context
+import com.homiq.app.data.backup.AutoBackupService
+import com.homiq.app.data.backup.BackupPreferences
+import com.homiq.app.data.backup.DriveBackupService
+import com.homiq.app.data.backup.GoogleDriveBackupClient
 import com.homiq.app.data.backup.HomiqBackupService
-import com.homiq.app.data.security.AppLockPreferences
-import com.homiq.app.data.security.AppLockService
-import com.homiq.app.data.sync.GoogleDriveAuthorization
-import com.homiq.app.data.sync.GoogleDriveRestClient
-import com.homiq.app.data.sync.HomiqSyncEngine
-import com.homiq.app.data.sync.HomiqSyncService
-import com.homiq.app.data.sync.SyncChangeSignal
-import com.homiq.app.data.sync.SyncPreferences
-import com.homiq.app.data.update.HomikaUpdateManager
 import com.homiq.app.data.local.HomiqDatabase
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
@@ -24,6 +19,15 @@ import com.homiq.app.data.repository.RoomDepositRepository
 import com.homiq.app.data.repository.RoomExpenseRepository
 import com.homiq.app.data.repository.RoomPaymentRepository
 import com.homiq.app.data.repository.RoomPropertyRepository
+import com.homiq.app.data.security.AppLockPreferences
+import com.homiq.app.data.security.AppLockService
+import com.homiq.app.data.sync.GoogleDriveAuthorization
+import com.homiq.app.data.sync.GoogleDriveRestClient
+import com.homiq.app.data.sync.HomiqSyncEngine
+import com.homiq.app.data.sync.HomiqSyncService
+import com.homiq.app.data.sync.SyncChangeSignal
+import com.homiq.app.data.sync.SyncPreferences
+import com.homiq.app.data.update.HomikaUpdateManager
 
 class HomiqAppContainer(
     context: Context,
@@ -90,6 +94,10 @@ class HomiqAppContainer(
         )
     }
 
+    val backupPreferences: BackupPreferences by lazy {
+        BackupPreferences(context)
+    }
+
     val backupService: HomiqBackupService by lazy {
         HomiqBackupService(
             context = context,
@@ -97,6 +105,29 @@ class HomiqAppContainer(
         )
     }
 
+    private val driveAuthorization:
+        GoogleDriveAuthorization by lazy {
+        GoogleDriveAuthorization(context)
+    }
+
+    val driveBackupService: DriveBackupService by lazy {
+        DriveBackupService(
+            database = database,
+            authorization = driveAuthorization,
+            drive = GoogleDriveBackupClient(),
+            syncPreferences = syncPreferences,
+            backupPreferences = backupPreferences,
+        )
+    }
+
+    val autoBackupService: AutoBackupService by lazy {
+        AutoBackupService(
+            driveBackup = driveBackupService,
+            preferences = backupPreferences,
+            syncPreferences = syncPreferences,
+            changes = syncChanges,
+        )
+    }
 
     val updateManager: HomikaUpdateManager by lazy {
         HomikaUpdateManager(context)
@@ -104,8 +135,7 @@ class HomiqAppContainer(
 
     val syncService: HomiqSyncService by lazy {
         HomiqSyncService(
-            authorization =
-                GoogleDriveAuthorization(context),
+            authorization = driveAuthorization,
             engine =
                 HomiqSyncEngine(
                     database = database,
