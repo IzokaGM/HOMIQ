@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.local.entity.BlockedDateEntity
 import com.homiq.app.data.local.entity.BookingEntity
+import com.homiq.app.data.preferences.CalendarPreferences
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.domain.CalendarRules
 import com.homiq.app.ui.components.AvailabilityLegend
@@ -86,13 +88,31 @@ fun CalendarScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val configuration = LocalConfiguration.current
     val locale = configuration.locales[0]
+    val context = LocalContext.current.applicationContext
+    val calendarPreferences = remember(context) {
+        CalendarPreferences(context)
+    }
     val today = remember { LocalDate.now() }
-    var selectedPropertyId by remember { mutableStateOf<String?>(null) }
+    var selectedPropertyId by remember {
+        mutableStateOf(calendarPreferences.selectedPropertyId)
+    }
     var selectedDay by remember { mutableLongStateOf(today.toEpochDay()) }
 
     LaunchedEffect(state.month) {
         if (YearMonth.from(LocalDate.ofEpochDay(selectedDay)) != state.month) {
             selectedDay = state.month.atDay(1).toEpochDay()
+        }
+    }
+
+    LaunchedEffect(state.properties, selectedPropertyId) {
+        val savedPropertyId = selectedPropertyId
+        if (
+            savedPropertyId != null &&
+            state.properties.isNotEmpty() &&
+            state.properties.none { !it.isDeleted && it.id == savedPropertyId }
+        ) {
+            selectedPropertyId = null
+            calendarPreferences.setSelectedProperty(null)
         }
     }
 
@@ -195,7 +215,10 @@ fun CalendarScreen(
                 optionText = {
                     if (it.id == null) stringResource(R.string.all_properties) else it.name
                 },
-                onSelected = { selectedPropertyId = it.id },
+                onSelected = {
+                    selectedPropertyId = it.id
+                    calendarPreferences.setSelectedProperty(it.id)
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -265,51 +288,7 @@ fun CalendarScreen(
             }
         }
         item { AvailabilityLegend() }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Button(
-                    onClick = {
-                        onNewBooking(selectedDay, selectedPropertyId)
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !selectedDayUnavailable,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.book_from_date),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(start = 5.dp),
-                    )
-                }
-                OutlinedButton(
-                    onClick = {
-                        onBlockDate(selectedDay, selectedPropertyId)
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !selectedDayUnavailable,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Block,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.block_from_date),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(start = 5.dp),
-                    )
-                }
-            }
-        }
+
         item {
             Text(
                 text = stringResource(
@@ -319,6 +298,7 @@ fun CalendarScreen(
                 style = MaterialTheme.typography.titleMedium,
             )
         }
+
         if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
             item {
                 EmptyStateCard(
@@ -339,6 +319,7 @@ fun CalendarScreen(
                     onClick = { onBookingClick(booking.id) },
                 )
             }
+
             items(
                 items = selectedBlocks,
                 key = { "block-${it.id}" },
@@ -349,6 +330,72 @@ fun CalendarScreen(
                     onUnblock = { viewModel.deleteBlock(block.id) },
                 )
             }
+        }
+
+        item {
+            CalendarSelectedDateActions(
+                canCreate = !selectedDayUnavailable,
+                onBook = {
+                    onNewBooking(selectedDay, selectedPropertyId)
+                },
+                onBlock = {
+                    onBlockDate(selectedDay, selectedPropertyId)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CalendarSelectedDateActions(
+    canCreate: Boolean,
+    onBook: () -> Unit,
+    onBlock: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Button(
+            onClick = onBook,
+            modifier = Modifier.weight(1f),
+            enabled = canCreate,
+            contentPadding = PaddingValues(
+                horizontal = 12.dp,
+                vertical = 8.dp,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(R.string.book_from_date),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 5.dp),
+            )
+        }
+
+        OutlinedButton(
+            onClick = onBlock,
+            modifier = Modifier.weight(1f),
+            enabled = canCreate,
+            contentPadding = PaddingValues(
+                horizontal = 12.dp,
+                vertical = 8.dp,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Block,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = stringResource(R.string.block_from_date),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 5.dp),
+            )
         }
     }
 }
@@ -483,8 +530,8 @@ private fun DayCell(
                         .padding(bottom = 2.dp),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    if (hasCheckIn) CalendarMarkerDot(CalendarCheckInBlue)
                     if (hasCheckOut) CalendarMarkerDot(CalendarCheckOutRed)
+                    if (hasCheckIn) CalendarMarkerDot(CalendarCheckInBlue)
                 }
             }
         }
@@ -538,6 +585,12 @@ private fun CalendarBookingRow(
             Text(
                 text = stringResource(booking.status.labelRes()),
                 style = MaterialTheme.typography.labelSmall,
+            )
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(17.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
