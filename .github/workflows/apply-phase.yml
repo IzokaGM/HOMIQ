@@ -99,26 +99,36 @@ jobs:
                   env=os.environ.copy()
               ).returncode == 0
 
+          # Keep bumping until we find a release version that does not exist.
+          # Example: repo still says 1.0.0 but releases 1.0.0 and 1.0.1 already
+          # exist -> resolve directly to 1.0.2 / 10002.
           if exists(name):
               parts = name.split(".")
               if len(parts) != 3 or not all(x.isdigit() for x in parts):
                   raise SystemExit("versionName must use MAJOR.MINOR.PATCH.")
-              old_name, old_code = name, code
-              a,b,c = map(int, parts)
-              name = f"{a}.{b}.{c+1}"
-              code += 1
 
-              # Replace only the detected default values.
+              old_name, old_code = name, code
+              a, b, c = map(int, parts)
+              bumps = 0
+
+              while exists(name):
+                  c += 1
+                  bumps += 1
+                  name = f"{a}.{b}.{c}"
+                  code = old_code + bumps
+
+              # Replace only the detected default values in Gradle.
               s = s[:mn.start(1)] + name + s[mn.end(1):]
               mc2 = re.search(r'versionCode\s*=\s*.*?\?:\s*(\d+)', s)
               if not mc2:
                   mc2 = re.search(r'versionCode\s*=\s*(\d+)', s)
               s = s[:mc2.start(1)] + str(code) + s[mc2.end(1):]
               p.write_text(s, encoding="utf-8")
-              print(f"Auto-bumped {old_name} ({old_code}) -> {name} ({code})")
 
-          if exists(name):
-              raise SystemExit(f"Release v{name} already exists.")
+              print(
+                  f"Auto-bumped {old_name} ({old_code}) -> "
+                  f"{name} ({code}); skipped {bumps} existing release(s)."
+              )
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
               f.write(f"name={name}\ncode={code}\n")
