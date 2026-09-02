@@ -109,7 +109,7 @@ fun ReportsScreen(
                     stringResource(R.string.reports),
                 subtitle =
                     stringResource(
-                        R.string.reports_live_subtitle,
+                        R.string.homika_reports_live_subtitle_v2,
                     ),
             )
         }
@@ -237,7 +237,7 @@ fun ReportsScreen(
                     R.string.report_formula_title,
                 ),
                 body = stringResource(
-                    R.string.report_formula_body,
+                    R.string.homika_report_formula_body_v2,
                 ),
             )
         }
@@ -275,19 +275,7 @@ fun ReportsScreen(
                     ReportLine(
                         label =
                             stringResource(
-                                R.string.booked_value,
-                            ),
-                        value =
-                            formatSenAsRinggit(
-                                report?.bookedValueSen
-                                    ?: 0L,
-                                locale,
-                            ),
-                    )
-                    ReportLine(
-                        label =
-                            stringResource(
-                                R.string.average_booking_value,
+                                R.string.homika_average_amount_received,
                             ),
                         value =
                             formatSenAsRinggit(

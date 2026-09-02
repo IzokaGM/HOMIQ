@@ -134,10 +134,10 @@ class HomiqViewModelFactory(
                 MoneyViewModel(
                     propertyRepository =
                         container.properties,
+                    bookingRepository =
+                        container.bookings,
                     expenseRepository =
                         container.expenses,
-                    paymentRepository =
-                        container.payments,
                     expenseManager =
                         ExpenseManager(
                             properties =
@@ -157,8 +157,6 @@ class HomiqViewModelFactory(
                         container.bookings,
                     blockedDates =
                         container.blockedDates,
-                    payments =
-                        container.payments,
                     expenses =
                         container.expenses,
                 ) as T
@@ -173,8 +171,6 @@ class HomiqViewModelFactory(
                         container.bookings,
                     blockedDates =
                         container.blockedDates,
-                    payments =
-                        container.payments,
                     expenses =
                         container.expenses,
                 ) as T

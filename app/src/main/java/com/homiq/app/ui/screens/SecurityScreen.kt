@@ -95,7 +95,7 @@ fun SecurityScreen(
                             Text(
                                 stringResource(
                                     if (state.hasPin) R.string.app_lock_on_body
-                                    else R.string.app_lock_off_body,
+                                    else R.string.homika_app_lock_off_body_v2,
                                 ),
                             )
                         },

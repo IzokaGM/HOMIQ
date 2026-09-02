@@ -31,6 +31,7 @@ import com.homiq.app.ui.components.AvailabilityDateMode
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.components.SelectionField
 import com.homiq.app.ui.components.isStayRangeAvailable
+import com.homiq.app.ui.util.formatSenAsRinggit
 import com.homiq.app.ui.util.formatSenForInput
 import com.homiq.app.ui.util.labelRes
 import com.homiq.app.ui.util.messageRes
@@ -85,6 +86,9 @@ fun BookingFormScreen(
         mutableStateOf(BookingSource.WHATSAPP)
     }
     var totalAmount by remember(bookingId) { mutableStateOf("") }
+    var amountManuallyEdited by remember(bookingId) {
+        mutableStateOf(bookingId != null)
+    }
     var notes by remember(bookingId) { mutableStateOf("") }
     var initialized by remember(bookingId) { mutableStateOf(false) }
     var errorMessage by remember(bookingId) {
@@ -112,6 +116,48 @@ fun BookingFormScreen(
             selectableProperties.size == 1
         ) {
             propertyId = selectableProperties.first().id
+        }
+    }
+
+    val selectedProperty = remember(
+        propertyId,
+        selectableProperties,
+    ) {
+        selectableProperties.firstOrNull {
+            it.id == propertyId
+        }
+    }
+    val stayNights = (checkOut - checkIn).coerceAtLeast(0L)
+    val suggestedAmountSen = remember(
+        selectedProperty?.defaultNightlyRateSen,
+        stayNights,
+    ) {
+        val rate = selectedProperty?.defaultNightlyRateSen
+            ?.coerceAtLeast(0L)
+            ?: 0L
+        if (stayNights <= 0L || rate == 0L) {
+            0L
+        } else if (rate > Long.MAX_VALUE / stayNights) {
+            Long.MAX_VALUE
+        } else {
+            rate * stayNights
+        }
+    }
+
+    LaunchedEffect(
+        bookingId,
+        propertyId,
+        checkIn,
+        checkOut,
+        suggestedAmountSen,
+        amountManuallyEdited,
+    ) {
+        if (
+            bookingId == null &&
+            propertyId.isNotBlank() &&
+            !amountManuallyEdited
+        ) {
+            totalAmount = formatSenForInput(suggestedAmountSen)
         }
     }
 
@@ -289,13 +335,41 @@ fun BookingFormScreen(
                 OutlinedTextField(
                     value = totalAmount,
                     onValueChange = {
+                        amountManuallyEdited = true
                         totalAmount = it.filter { char ->
                             char.isDigit() || char == '.'
                         }
                         errorMessage = null
                     },
                     label = {
-                        Text(stringResource(R.string.total_booking))
+                        Text(
+                            stringResource(
+                                R.string.homika_amount_received,
+                            ),
+                        )
+                    },
+                    supportingText = {
+                        val rate = selectedProperty
+                            ?.defaultNightlyRateSen
+                            ?: 0L
+                        Text(
+                            stringResource(
+                                if (amountManuallyEdited) {
+                                    R.string.homika_amount_received_custom_hint
+                                } else {
+                                    R.string.homika_amount_received_default_hint
+                                },
+                                stayNights,
+                                formatSenAsRinggit(
+                                    rate,
+                                    java.util.Locale.getDefault(),
+                                ),
+                                formatSenAsRinggit(
+                                    suggestedAmountSen,
+                                    java.util.Locale.getDefault(),
+                                ),
+                            ),
+                        )
                     },
                     prefix = { Text("RM ") },
                     singleLine = true,

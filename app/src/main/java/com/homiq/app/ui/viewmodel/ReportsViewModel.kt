@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
 import com.homiq.app.data.repository.ExpenseRepository
-import com.homiq.app.data.repository.PaymentRepository
 import com.homiq.app.data.repository.PropertyRepository
 import com.homiq.app.domain.ReportAnalytics
 import com.homiq.app.domain.ReportPeriod
@@ -21,7 +20,6 @@ class ReportsViewModel(
     properties: PropertyRepository,
     bookings: BookingRepository,
     blockedDates: BlockedDateRepository,
-    payments: PaymentRepository,
     expenses: ExpenseRepository,
 ) : ViewModel() {
     private val selectedMonth =
@@ -51,7 +49,6 @@ class ReportsViewModel(
             properties = properties,
             bookings = bookings,
             blockedDates = blockedDates,
-            payments = payments,
             expenses = expenses,
         ).stateIn(
             scope = viewModelScope,
@@ -78,7 +75,6 @@ class ReportsViewModel(
             properties = properties,
             bookings = bookings,
             blockedDates = blockedDates,
-            payments = payments,
             expenses = expenses,
         ).stateIn(
             scope = viewModelScope,

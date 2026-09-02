@@ -36,6 +36,7 @@ data class BookingEntity(
     val checkInEpochDay: Long,
     val checkOutEpochDay: Long,
     val source: BookingSource = BookingSource.WHATSAPP,
+    // Legacy column name kept for DB/backup compatibility. Semantically: Amount Received.
     val totalAmountSen: Long = 0L,
     val status: BookingStatus = BookingStatus.CONFIRMED,
     val notes: String? = null,

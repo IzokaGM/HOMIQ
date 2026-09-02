@@ -3,8 +3,8 @@ package com.homiq.app.ui.viewmodel
 import com.homiq.app.data.repository.BlockedDateRepository
 import com.homiq.app.data.repository.BookingRepository
 import com.homiq.app.data.repository.ExpenseRepository
-import com.homiq.app.data.repository.PaymentRepository
 import com.homiq.app.data.repository.PropertyRepository
+import com.homiq.app.domain.BookingRevenueRules
 import com.homiq.app.domain.ReportAnalytics
 import com.homiq.app.domain.ReportAnalyticsBuilder
 import com.homiq.app.domain.ReportPeriod
@@ -19,41 +19,29 @@ fun reportAnalyticsFlow(
     properties: PropertyRepository,
     bookings: BookingRepository,
     blockedDates: BlockedDateRepository,
-    payments: PaymentRepository,
     expenses: ExpenseRepository,
 ): Flow<ReportAnalytics> =
     periodFlow.flatMapLatest { period ->
         combine(
             properties.observeAll(),
             bookings.observeInRange(
-                rangeStart =
-                    period.startEpochDay,
-                rangeEndExclusive =
-                    period.endEpochDayExclusive,
+                rangeStart = period.startEpochDay,
+                rangeEndExclusive = period.endEpochDayExclusive,
             ),
             blockedDates.observeInRange(
-                rangeStart =
-                    period.startEpochDay,
-                rangeEndExclusive =
-                    period.endEpochDayExclusive,
+                rangeStart = period.startEpochDay,
+                rangeEndExclusive = period.endEpochDayExclusive,
             ),
-            payments.observeRevenueInRangeSen(
-                startEpochDay =
-                    period.startEpochDay,
-                endEpochDayExclusive =
-                    period.endEpochDayExclusive,
-            ),
+            bookings.observeAll(),
             expenses.observeTotalInRangeSen(
-                startEpochDay =
-                    period.startEpochDay,
-                endEpochDayExclusive =
-                    period.endEpochDayExclusive,
+                startEpochDay = period.startEpochDay,
+                endEpochDayExclusive = period.endEpochDayExclusive,
             ),
         ) {
             propertyList,
             bookingList,
             blockedList,
-            revenueSen,
+            allBookings,
             expenseSen,
         ->
             ReportAnalyticsBuilder.build(
@@ -61,7 +49,11 @@ fun reportAnalyticsFlow(
                 properties = propertyList,
                 bookings = bookingList,
                 blockedDates = blockedList,
-                revenueSen = revenueSen,
+                revenueSen = BookingRevenueRules.revenueInRangeSen(
+                    bookings = allBookings,
+                    startEpochDay = period.startEpochDay,
+                    endEpochDayExclusive = period.endEpochDayExclusive,
+                ),
                 expensesSen = expenseSen,
             )
         }

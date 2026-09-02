@@ -11,6 +11,7 @@ data class BookingDraft(
     val checkInEpochDay: Long,
     val checkOutEpochDay: Long,
     val source: BookingSource,
+    // Legacy field name kept for compatibility. Semantically: Amount Received.
     val totalAmountSen: Long,
     val status: BookingStatus = BookingStatus.CONFIRMED,
     val notes: String,

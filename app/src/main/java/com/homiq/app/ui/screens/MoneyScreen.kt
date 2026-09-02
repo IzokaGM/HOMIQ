@@ -86,7 +86,7 @@ fun MoneyScreen(
         item {
             ScreenHeader(
                 title = stringResource(R.string.money_title),
-                subtitle = stringResource(R.string.money_live_subtitle),
+                subtitle = stringResource(R.string.homika_money_live_subtitle_v2),
                 compact = true,
             )
         }
@@ -189,7 +189,7 @@ fun MoneyScreen(
             item {
                 EmptyStateCard(
                     title = stringResource(R.string.no_money_activity),
-                    body = stringResource(R.string.no_money_activity_body),
+                    body = stringResource(R.string.homika_no_money_activity_body_v2),
                     icon = Icons.Outlined.ReceiptLong,
                     compact = true,
                 )

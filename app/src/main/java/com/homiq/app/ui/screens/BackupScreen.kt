@@ -583,7 +583,7 @@ private fun RestoreConfirmationDialog(
             Text(
                 stringResource(
                     R.string
-                        .restore_confirm_body,
+                        .homika_restore_confirm_body_v2,
                     formatBackupTime(
                         preview
                             .createdAtEpochMillis,
@@ -591,9 +591,14 @@ private fun RestoreConfirmationDialog(
                     ).orEmpty(),
                     preview.propertyCount,
                     preview.bookingCount,
-                    preview.paymentCount,
                     preview.expenseCount,
-                    preview.totalRecordCount,
+                    preview.depositCount,
+                    preview.blockedDateCount,
+                    preview.propertyCount +
+                        preview.bookingCount +
+                        preview.expenseCount +
+                        preview.depositCount +
+                        preview.blockedDateCount,
                 ),
             )
         },

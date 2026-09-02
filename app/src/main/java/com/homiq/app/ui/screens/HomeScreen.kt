@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.NightsStay
-import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +42,6 @@ import com.homiq.app.ui.util.formatEpochDay
 import com.homiq.app.ui.util.formatPercent
 import com.homiq.app.ui.util.formatSenAsRinggit
 import com.homiq.app.ui.viewmodel.DashboardViewModel
-import com.homiq.app.ui.viewmodel.OutstandingBooking
 
 @Composable
 fun HomeScreen(
@@ -112,37 +110,6 @@ fun HomeScreen(
                     propertyName = state.propertyNames[booking.propertyId].orEmpty(),
                     checkIn = false,
                     onClick = { onBookingClick(booking.id) },
-                )
-            }
-        }
-
-        item {
-            SectionHeader(
-                title = stringResource(R.string.needs_attention),
-                action = if (state.outstandingBookings.isNotEmpty()) {
-                    stringResource(R.string.dashboard_attention_count, state.outstandingBookings.size)
-                } else {
-                    null
-                },
-                compact = true,
-            )
-        }
-        if (state.outstandingBookings.isEmpty()) {
-            item {
-                EmptyStateCard(
-                    title = stringResource(R.string.no_outstanding_attention),
-                    body = stringResource(R.string.no_outstanding_attention_body),
-                    icon = Icons.Outlined.Payments,
-                    compact = true,
-                )
-            }
-        } else {
-            items(state.outstandingBookings, key = { "balance-${it.booking.id}" }) { item ->
-                OutstandingRow(
-                    item = item,
-                    propertyName = state.propertyNames[item.booking.propertyId].orEmpty(),
-                    locale = locale,
-                    onClick = { onBookingClick(item.booking.id) },
                 )
             }
         }
@@ -343,52 +310,6 @@ private fun OperationRow(
                 text = stringResource(if (checkIn) R.string.check_in_today else R.string.check_out_today),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-@Composable
-private fun OutstandingRow(
-    item: OutstandingBooking,
-    propertyName: String,
-    locale: java.util.Locale,
-    onClick: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(
-            modifier = Modifier.padding(11.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
-            ) {
-                Text(
-                    item.booking.guestName,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    propertyName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Text(
-                text = formatSenAsRinggit(item.outstandingSen, locale),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.error,
                 maxLines = 1,
             )
         }

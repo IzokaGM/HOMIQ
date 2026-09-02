@@ -20,7 +20,6 @@ import androidx.compose.material.icons.outlined.EventNote
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ListAlt
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -71,8 +70,6 @@ import com.homiq.app.ui.screens.HomeScreen
 import com.homiq.app.ui.screens.MoneyScreen
 import com.homiq.app.ui.screens.MoreScreen
 import com.homiq.app.ui.screens.OnboardingScreen
-import com.homiq.app.ui.screens.PaymentBookingPickerScreen
-import com.homiq.app.ui.screens.PaymentFormScreen
 import com.homiq.app.ui.screens.PropertiesScreen
 import com.homiq.app.ui.screens.PropertyFormScreen
 import com.homiq.app.ui.screens.ReportsScreen
@@ -110,8 +107,6 @@ private enum class HomiqRoute {
     BOOKING_FORM,
     BOOKING_DETAIL,
     BLOCK_DATE_FORM,
-    PAYMENT_PICKER,
-    PAYMENT_FORM,
     DEPOSIT,
     EXPENSE_FORM,
     REPORTS,
@@ -216,8 +211,6 @@ fun HomiqApp() {
                 }
                 HomiqRoute.BOOKING_DETAIL -> goMain(HomiqDestination.Bookings)
                 HomiqRoute.BLOCK_DATE_FORM -> goMain(HomiqDestination.Calendar)
-                HomiqRoute.PAYMENT_PICKER -> goMain(HomiqDestination.Bookings)
-                HomiqRoute.PAYMENT_FORM -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
                 HomiqRoute.DEPOSIT -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
                 HomiqRoute.EXPENSE_FORM -> goMain(HomiqDestination.Money)
                 HomiqRoute.REPORTS -> goMain(HomiqDestination.Home)
@@ -337,7 +330,6 @@ fun HomiqApp() {
                             financeViewModel = financeViewModel,
                             onEdit = { navigate(HomiqRoute.BOOKING_FORM, id = id) },
                             onCancelled = { goMain(HomiqDestination.Calendar) },
-                            onRecordPayment = { navigate(HomiqRoute.PAYMENT_FORM, id = id) },
                             onManageDeposit = { navigate(HomiqRoute.DEPOSIT, id = id) },
                             modifier = Modifier.padding(innerPadding),
                         )
@@ -351,24 +343,6 @@ fun HomiqApp() {
                     initialStartEpochDay = routeEpochDay,
                     initialPropertyId = routePropertyId,
                 )
-                HomiqRoute.PAYMENT_PICKER -> PaymentBookingPickerScreen(
-                    bookingViewModel = bookingViewModel,
-                    financeViewModel = financeViewModel,
-                    onBookingSelected = { navigate(HomiqRoute.PAYMENT_FORM, id = it) },
-                    modifier = Modifier.padding(innerPadding),
-                )
-                HomiqRoute.PAYMENT_FORM -> {
-                    val id = routeId
-                    if (id != null) {
-                        PaymentFormScreen(
-                            bookingId = id,
-                            bookingViewModel = bookingViewModel,
-                            financeViewModel = financeViewModel,
-                            onSaved = { navigate(HomiqRoute.BOOKING_DETAIL, id = id) },
-                            modifier = Modifier.padding(innerPadding),
-                        )
-                    }
-                }
                 HomiqRoute.DEPOSIT -> {
                     val id = routeId
                     if (id != null) {
@@ -412,10 +386,6 @@ fun HomiqApp() {
                 QuickActionRow(Icons.Outlined.EventNote, stringResource(R.string.new_booking)) {
                     showQuickAdd = false
                     navigate(HomiqRoute.BOOKING_FORM)
-                }
-                QuickActionRow(Icons.Outlined.Payments, stringResource(R.string.record_payment)) {
-                    showQuickAdd = false
-                    navigate(HomiqRoute.PAYMENT_PICKER)
                 }
                 QuickActionRow(Icons.Outlined.ReceiptLong, stringResource(R.string.add_expense)) {
                     showQuickAdd = false

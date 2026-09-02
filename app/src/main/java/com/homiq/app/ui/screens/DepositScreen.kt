@@ -130,7 +130,7 @@ fun DepositScreen(
                     R.string.deposit_separate_title,
                 ),
                 body = stringResource(
-                    R.string.deposit_separate_body,
+                    R.string.homika_deposit_separate_body_v2,
                 ),
             )
         }
