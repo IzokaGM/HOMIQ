@@ -99,6 +99,9 @@ class RoomBookingRepository(
             excludeBookingId = excludeBookingId,
         )
 
+    override suspend fun countForProperty(propertyId: String): Int =
+        dao.countForProperty(propertyId)
+
     override suspend fun save(entity: BookingEntity) {
         dao.upsert(entity.nextRevision(now()))
         onChanged()
@@ -203,6 +206,9 @@ class RoomExpenseRepository(
 
     override suspend fun getById(id: String): ExpenseEntity? = dao.getById(id)
 
+    override suspend fun countForProperty(propertyId: String): Int =
+        dao.countForProperty(propertyId)
+
     override suspend fun save(entity: ExpenseEntity) {
         dao.upsert(entity.nextRevision(now()))
         onChanged()
@@ -238,6 +244,9 @@ class RoomBlockedDateRepository(
         )
 
     override suspend fun getById(id: String): BlockedDateEntity? = dao.getById(id)
+
+    override suspend fun countForProperty(propertyId: String): Int =
+        dao.countForProperty(propertyId)
 
     override suspend fun save(entity: BlockedDateEntity) {
         dao.upsert(entity.nextRevision(now()))

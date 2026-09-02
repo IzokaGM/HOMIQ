@@ -172,7 +172,7 @@ fun BookingsScreen(
                         onBookingClick(selectedActionBooking.id)
                     },
                     headlineContent = {
-                        Text(stringResource(R.string.booking_action_view))
+                        Text(stringResource(R.string.list_booking_action_view))
                     },
                     leadingContent = {
                         Icon(
@@ -188,7 +188,7 @@ fun BookingsScreen(
                     },
                     headlineContent = {
                         Text(
-                            text = stringResource(R.string.booking_action_delete),
+                            text = stringResource(R.string.list_booking_action_delete),
                             color = MaterialTheme.colorScheme.error,
                         )
                     },
@@ -209,12 +209,12 @@ fun BookingsScreen(
         AlertDialog(
             onDismissRequest = { deleteBooking = null },
             title = {
-                Text(stringResource(R.string.booking_delete_title))
+                Text(stringResource(R.string.list_booking_delete_title))
             },
             text = {
                 Text(
                     stringResource(
-                        R.string.booking_delete_message,
+                        R.string.list_booking_delete_message,
                         selectedDeleteBooking.guestName,
                     ),
                 )
@@ -227,7 +227,7 @@ fun BookingsScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.booking_action_delete),
+                        text = stringResource(R.string.list_booking_action_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }

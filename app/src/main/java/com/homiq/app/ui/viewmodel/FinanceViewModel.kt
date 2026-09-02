@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class FinanceViewModel(
     private val payments: PaymentRepository,
@@ -49,6 +50,12 @@ class FinanceViewModel(
         draft: PaymentDraft,
     ): PaymentSaveResult =
         paymentManager.record(draft)
+
+    fun deletePayment(paymentId: String) {
+        viewModelScope.launch {
+            payments.delete(paymentId)
+        }
+    }
 
     suspend fun setDepositRequired(
         bookingId: String,

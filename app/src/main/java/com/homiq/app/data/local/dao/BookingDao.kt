@@ -63,6 +63,14 @@ interface BookingDao {
         excludeBookingId: String,
     ): List<BookingEntity>
 
+    @Query(
+        """
+        SELECT COUNT(*) FROM bookings
+        WHERE isDeleted = 0 AND propertyId = :propertyId
+        """,
+    )
+    suspend fun countForProperty(propertyId: String): Int
+
     @Upsert
     suspend fun upsert(entity: BookingEntity)
 

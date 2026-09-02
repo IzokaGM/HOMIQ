@@ -3,6 +3,9 @@ package com.homiq.app.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homiq.app.data.local.entity.PropertyEntity
+import com.homiq.app.data.repository.BlockedDateRepository
+import com.homiq.app.data.repository.BookingRepository
+import com.homiq.app.data.repository.ExpenseRepository
 import com.homiq.app.data.repository.PropertyRepository
 import com.homiq.app.domain.PropertyDraft
 import com.homiq.app.domain.PropertySaveIssue
@@ -11,8 +14,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
+enum class PropertyDeleteResult {
+    SUCCESS,
+    HAS_RELATED_DATA,
+}
+
 class PropertyViewModel(
     private val properties: PropertyRepository,
+    private val bookings: BookingRepository,
+    private val expenses: ExpenseRepository,
+    private val blockedDates: BlockedDateRepository,
 ) : ViewModel() {
     val propertyList: StateFlow<List<PropertyEntity>> =
         properties.observeAll().stateIn(
@@ -60,4 +71,18 @@ class PropertyViewModel(
         properties.save(entity)
         return PropertySaveResult.Success(entity.id)
     }
+    suspend fun delete(propertyId: String): PropertyDeleteResult {
+        val hasRelatedData =
+            bookings.countForProperty(propertyId) > 0 ||
+                expenses.countForProperty(propertyId) > 0 ||
+                blockedDates.countForProperty(propertyId) > 0
+
+        if (hasRelatedData) {
+            return PropertyDeleteResult.HAS_RELATED_DATA
+        }
+
+        properties.delete(propertyId)
+        return PropertyDeleteResult.SUCCESS
+    }
+
 }

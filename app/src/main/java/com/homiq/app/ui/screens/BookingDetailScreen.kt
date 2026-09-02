@@ -1,5 +1,8 @@
 package com.homiq.app.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,14 +13,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
+import com.homiq.app.data.local.entity.PaymentEntity
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.data.model.DepositStatus
 import com.homiq.app.domain.DepositRules
@@ -48,6 +55,7 @@ import com.homiq.app.ui.viewmodel.BookingViewModel
 import com.homiq.app.ui.viewmodel.FinanceViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BookingDetailScreen(
     bookingId: String,
@@ -87,6 +95,8 @@ fun BookingDetailScreen(
     val locale = LocalConfiguration.current.locales[0]
     val scope = rememberCoroutineScope()
     var showCancelDialog by remember { mutableStateOf(false) }
+    var actionPayment by remember { mutableStateOf<PaymentEntity?>(null) }
+    var deletePayment by remember { mutableStateOf<PaymentEntity?>(null) }
 
     if (booking == null) {
         LazyColumn(
@@ -273,6 +283,12 @@ fun BookingDetailScreen(
                 key = { it.id },
             ) { payment ->
                 Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = { actionPayment = payment },
+                        ),
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 1.dp,
@@ -418,6 +434,77 @@ fun BookingDetailScreen(
                 }
             }
         }
+    }
+
+    val selectedActionPayment = actionPayment
+    if (selectedActionPayment != null) {
+        ModalBottomSheet(onDismissRequest = { actionPayment = null }) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = formatSenAsRinggit(selectedActionPayment.amountSen, locale),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                )
+                androidx.compose.material3.ListItem(
+                    modifier = Modifier.clickable {
+                        actionPayment = null
+                        deletePayment = selectedActionPayment
+                    },
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.list_payment_action_delete),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                )
+            }
+        }
+    }
+
+    val selectedDeletePayment = deletePayment
+    if (selectedDeletePayment != null) {
+        AlertDialog(
+            onDismissRequest = { deletePayment = null },
+            title = { Text(stringResource(R.string.list_payment_delete_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.list_payment_delete_message,
+                        formatSenAsRinggit(selectedDeletePayment.amountSen, locale),
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        financeViewModel.deletePayment(selectedDeletePayment.id)
+                        deletePayment = null
+                    },
+                ) {
+                    Text(
+                        text = stringResource(R.string.list_payment_action_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletePayment = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     if (showCancelDialog) {

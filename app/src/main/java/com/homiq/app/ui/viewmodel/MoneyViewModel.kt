@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class PropertyMoneySummary(
     val propertyId: String?,
@@ -193,6 +194,12 @@ class MoneyViewModel(
         draft: ExpenseDraft,
     ): ExpenseSaveResult =
         expenseManager.save(draft)
+
+    fun deleteExpense(expenseId: String) {
+        viewModelScope.launch {
+            expenseRepository.delete(expenseId)
+        }
+    }
 
     private fun buildBreakdown(
         properties: List<PropertyEntity>,

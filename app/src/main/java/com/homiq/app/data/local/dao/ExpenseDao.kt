@@ -65,6 +65,14 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): ExpenseEntity?
 
+    @Query(
+        """
+        SELECT COUNT(*) FROM expenses
+        WHERE isDeleted = 0 AND propertyId = :propertyId
+        """,
+    )
+    suspend fun countForProperty(propertyId: String): Int
+
     @Upsert
     suspend fun upsert(entity: ExpenseEntity)
 

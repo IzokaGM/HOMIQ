@@ -34,6 +34,7 @@ interface BookingRepository {
         excludeBookingId: String = "",
     ): List<BookingEntity>
 
+    suspend fun countForProperty(propertyId: String): Int
     suspend fun save(entity: BookingEntity)
     suspend fun delete(id: String)
 }
@@ -82,6 +83,7 @@ interface ExpenseRepository {
     ): Flow<Long>
 
     suspend fun getById(id: String): ExpenseEntity?
+    suspend fun countForProperty(propertyId: String): Int
     suspend fun save(entity: ExpenseEntity)
     suspend fun delete(id: String)
 }
@@ -100,6 +102,7 @@ interface BlockedDateRepository {
     ): List<BlockedDateEntity>
 
     suspend fun getById(id: String): BlockedDateEntity?
+    suspend fun countForProperty(propertyId: String): Int
     suspend fun save(entity: BlockedDateEntity)
     suspend fun delete(id: String)
 }

@@ -43,6 +43,14 @@ interface BlockedDateDao {
     @Query("SELECT * FROM blocked_dates WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): BlockedDateEntity?
 
+    @Query(
+        """
+        SELECT COUNT(*) FROM blocked_dates
+        WHERE isDeleted = 0 AND propertyId = :propertyId
+        """,
+    )
+    suspend fun countForProperty(propertyId: String): Int
+
     @Upsert
     suspend fun upsert(entity: BlockedDateEntity)
 

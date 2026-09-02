@@ -46,6 +46,12 @@ class HomiqViewModelFactory(
                 PropertyViewModel(
                     properties =
                         container.properties,
+                    bookings =
+                        container.bookings,
+                    expenses =
+                        container.expenses,
+                    blockedDates =
+                        container.blockedDates,
                 ) as T
 
             modelClass.isAssignableFrom(
