@@ -53,6 +53,7 @@ import com.homiq.app.data.local.entity.BlockedDateEntity
 import com.homiq.app.data.local.entity.BookingEntity
 import com.homiq.app.data.preferences.CalendarPreferences
 import com.homiq.app.data.model.BookingStatus
+import com.homiq.app.domain.BookingReferenceRules
 import com.homiq.app.domain.CalendarRules
 import com.homiq.app.ui.components.AvailabilityLegend
 import com.homiq.app.ui.components.CalendarCheckInBlue
@@ -196,6 +197,9 @@ fun CalendarScreen(
     }
     val propertyNames = remember(state.properties) {
         state.properties.associate { it.id to it.name }
+    }
+    val propertyCodes = remember(state.properties) {
+        state.properties.associate { it.id to it.bookingCode }
     }
     val monthStartEpochDay = remember(state.month) {
         state.month.atDay(1).toEpochDay()
@@ -423,6 +427,7 @@ fun CalendarScreen(
                             CalendarMonthBookingRow(
                                 booking = item.booking,
                                 propertyName = propertyNames[item.booking.propertyId].orEmpty(),
+                                propertyCode = propertyCodes[item.booking.propertyId].orEmpty(),
                                 locale = locale,
                                 onClick = {
                                     onBookingClick(item.booking.id)
@@ -475,6 +480,7 @@ fun CalendarScreen(
                     CalendarBookingRow(
                         booking = booking,
                         propertyName = propertyNames[booking.propertyId].orEmpty(),
+                        propertyCode = propertyCodes[booking.propertyId].orEmpty(),
                         onClick = { onBookingClick(booking.id) },
                     )
                 }
@@ -735,6 +741,7 @@ private fun DayCell(
 private fun CalendarBookingRow(
     booking: BookingEntity,
     propertyName: String,
+    propertyCode: String,
     onClick: () -> Unit,
 ) {
     val statusColor = when (booking.status) {
@@ -771,7 +778,15 @@ private fun CalendarBookingRow(
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
-                    text = propertyName,
+                    text = listOf(
+                        propertyName,
+                        BookingReferenceRules.display(
+                            storedReference = booking.bookingReference,
+                            propertyCode = propertyCode,
+                            propertyName = propertyName,
+                            checkInEpochDay = booking.checkInEpochDay,
+                        ),
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -793,6 +808,7 @@ private fun CalendarBookingRow(
 private fun CalendarMonthBookingRow(
     booking: BookingEntity,
     propertyName: String,
+    propertyCode: String,
     locale: java.util.Locale,
     onClick: () -> Unit,
 ) {
@@ -831,7 +847,15 @@ private fun CalendarMonthBookingRow(
                     maxLines = 1,
                 )
                 Text(
-                    text = propertyName,
+                    text = listOf(
+                        propertyName,
+                        BookingReferenceRules.display(
+                            storedReference = booking.bookingReference,
+                            propertyCode = propertyCode,
+                            propertyName = propertyName,
+                            checkInEpochDay = booking.checkInEpochDay,
+                        ),
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

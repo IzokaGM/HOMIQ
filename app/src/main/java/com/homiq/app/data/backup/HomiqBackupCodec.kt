@@ -17,7 +17,7 @@ import org.json.JSONObject
 object HomiqBackupCodec {
     const val MAGIC = "HOMIQ_BACKUP"
     const val FORMAT_VERSION = 1
-    const val DATABASE_SCHEMA_VERSION = 1
+    const val DATABASE_SCHEMA_VERSION = 2
 
     fun encode(
         snapshot: HomiqBackupSnapshot,
@@ -164,6 +164,7 @@ object HomiqBackupCodec {
         JSONObject()
             .put("id", value.id)
             .put("name", value.name)
+            .put("bookingCode", value.bookingCode)
             .putNullable("address", value.address)
             .putNullable("notes", value.notes)
             .put(
@@ -188,6 +189,7 @@ object HomiqBackupCodec {
         PropertyEntity(
             id = value.getString("id"),
             name = value.getString("name"),
+            bookingCode = value.optString("bookingCode", ""),
             address =
                 value.nullableString("address"),
             notes =
@@ -218,6 +220,7 @@ object HomiqBackupCodec {
         JSONObject()
             .put("id", value.id)
             .put("propertyId", value.propertyId)
+            .put("bookingReference", value.bookingReference)
             .put("guestName", value.guestName)
             .putNullable(
                 "guestPhone",
@@ -256,6 +259,8 @@ object HomiqBackupCodec {
             id = value.getString("id"),
             propertyId =
                 value.getString("propertyId"),
+            bookingReference =
+                value.optString("bookingReference", ""),
             guestName =
                 value.getString("guestName"),
             guestPhone =

@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.model.BookingStatus
 import com.homiq.app.data.model.DepositStatus
+import com.homiq.app.domain.BookingReferenceRules
 import com.homiq.app.domain.DepositRules
 import com.homiq.app.ui.components.InfoCard
 import com.homiq.app.ui.components.ScreenHeader
@@ -85,10 +86,17 @@ fun BookingDetailScreen(
         return
     }
 
-    val propertyName = properties
+    val property = properties
         .firstOrNull { it.id == booking.propertyId }
+    val propertyName = property
         ?.name
         ?: stringResource(R.string.unknown_property)
+    val bookingReference = BookingReferenceRules.display(
+        storedReference = booking.bookingReference,
+        propertyCode = property?.bookingCode.orEmpty(),
+        propertyName = propertyName,
+        checkInEpochDay = booking.checkInEpochDay,
+    )
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -104,7 +112,7 @@ fun BookingDetailScreen(
             ScreenHeader(
                 eyebrow = stringResource(booking.status.labelRes()),
                 title = booking.guestName,
-                subtitle = propertyName,
+                subtitle = "$propertyName · $bookingReference",
             )
         }
 

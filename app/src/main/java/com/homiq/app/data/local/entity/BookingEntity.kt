@@ -1,5 +1,6 @@
 package com.homiq.app.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -31,6 +32,8 @@ data class BookingEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val propertyId: String,
+    @ColumnInfo(defaultValue = "''")
+    val bookingReference: String = "",
     val guestName: String,
     val guestPhone: String? = null,
     val checkInEpochDay: Long,

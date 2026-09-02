@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.local.entity.PropertyEntity
+import com.homiq.app.domain.BookingReferenceRules
 import com.homiq.app.ui.components.EmptyStateCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatSenAsRinggit
@@ -117,7 +118,7 @@ fun PropertiesScreen(
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(property.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                text = "${formatSenAsRinggit(property.defaultNightlyRateSen, locale)} / ${stringResource(R.string.per_night)}",
+                                text = "${BookingReferenceRules.effectivePropertyCode(property.bookingCode, property.name)} · ${formatSenAsRinggit(property.defaultNightlyRateSen, locale)} / ${stringResource(R.string.per_night)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,

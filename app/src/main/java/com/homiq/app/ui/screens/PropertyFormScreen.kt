@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
+import com.homiq.app.domain.BookingReferenceRules
 import com.homiq.app.domain.PropertyDraft
 import com.homiq.app.domain.PropertySaveResult
 import com.homiq.app.ui.components.ScreenHeader
@@ -43,6 +44,8 @@ fun PropertyFormScreen(
     val existing = properties.firstOrNull { it.id == propertyId }
 
     var name by remember(propertyId) { mutableStateOf("") }
+    var bookingCode by remember(propertyId) { mutableStateOf("") }
+    var bookingCodeManuallyEdited by remember(propertyId) { mutableStateOf(propertyId != null) }
     var address by remember(propertyId) { mutableStateOf("") }
     var rate by remember(propertyId) { mutableStateOf("") }
     var notes by remember(propertyId) { mutableStateOf("") }
@@ -56,11 +59,23 @@ fun PropertyFormScreen(
     LaunchedEffect(existing) {
         if (!initialized && existing != null) {
             name = existing.name
+            bookingCode = BookingReferenceRules.effectivePropertyCode(
+                storedCode = existing.bookingCode,
+                propertyName = existing.name,
+            )
             address = existing.address.orEmpty()
             rate = formatSenForInput(existing.defaultNightlyRateSen)
             notes = existing.notes.orEmpty()
             isActive = existing.isActive
             initialized = true
+        }
+    }
+
+
+
+    LaunchedEffect(name, propertyId, bookingCodeManuallyEdited) {
+        if (propertyId == null && !bookingCodeManuallyEdited) {
+            bookingCode = BookingReferenceRules.suggestPropertyCode(name)
         }
     }
 
@@ -97,6 +112,24 @@ fun PropertyFormScreen(
                     errorMessage = null
                 },
                 label = { Text(stringResource(R.string.property_name)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = bookingCode,
+                onValueChange = { raw ->
+                    bookingCodeManuallyEdited = true
+                    bookingCode = BookingReferenceRules.sanitizePropertyCode(raw)
+                },
+                label = {
+                    Text(stringResource(R.string.homika_booking_code))
+                },
+                supportingText = {
+                    Text(stringResource(R.string.homika_booking_code_hint))
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -198,6 +231,7 @@ fun PropertyFormScreen(
                                 PropertyDraft(
                                     id = propertyId,
                                     name = name,
+                                    bookingCode = bookingCode,
                                     address = address,
                                     notes = notes,
                                     defaultNightlyRateSen = rateSen,

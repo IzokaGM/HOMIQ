@@ -28,7 +28,7 @@ import com.homiq.app.data.local.entity.PropertyEntity
         ExpenseEntity::class,
         BlockedDateEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(HomiqTypeConverters::class)

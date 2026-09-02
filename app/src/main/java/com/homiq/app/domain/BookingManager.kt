@@ -83,6 +83,13 @@ class BookingManager(
         val booking = BookingEntity(
             id = existing?.id ?: draft.id ?: java.util.UUID.randomUUID().toString(),
             propertyId = draft.propertyId,
+            bookingReference = existing?.bookingReference
+                ?.takeIf { it.isNotBlank() }
+                ?: BookingReferenceRules.create(
+                    propertyCode = property.bookingCode,
+                    propertyName = property.name,
+                    checkInEpochDay = draft.checkInEpochDay,
+                ),
             guestName = draft.guestName.trim(),
             guestPhone = draft.guestPhone.trim().ifBlank { null },
             checkInEpochDay = draft.checkInEpochDay,

@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homiq.app.R
 import com.homiq.app.data.local.entity.BookingEntity
 import com.homiq.app.data.model.BookingStatus
+import com.homiq.app.domain.BookingReferenceRules
 import com.homiq.app.ui.components.EmptyStateCard
 import com.homiq.app.ui.components.ScreenHeader
 import com.homiq.app.ui.util.formatEpochDay
@@ -64,6 +65,7 @@ fun BookingsScreen(
     val locale = LocalConfiguration.current.locales[0]
     val today = LocalDate.now().toEpochDay()
     val propertyNames = remember(properties) { properties.associate { it.id to it.name } }
+    val propertyCodes = remember(properties) { properties.associate { it.id to it.bookingCode } }
     var selectedFilter by remember { mutableIntStateOf(0) }
     var actionBooking by remember { mutableStateOf<BookingEntity?>(null) }
     var deleteBooking by remember { mutableStateOf<BookingEntity?>(null) }
@@ -140,6 +142,12 @@ fun BookingsScreen(
                 BookingListCard(
                     booking = booking,
                     propertyName = propertyNames[booking.propertyId].orEmpty(),
+                    bookingReference = BookingReferenceRules.display(
+                        storedReference = booking.bookingReference,
+                        propertyCode = propertyCodes[booking.propertyId].orEmpty(),
+                        propertyName = propertyNames[booking.propertyId].orEmpty(),
+                        checkInEpochDay = booking.checkInEpochDay,
+                    ),
                     locale = locale,
                     onClick = { onBookingClick(booking.id) },
                     onLongClick = { actionBooking = booking },
@@ -248,6 +256,7 @@ fun BookingsScreen(
 private fun BookingListCard(
     booking: BookingEntity,
     propertyName: String,
+    bookingReference: String,
     locale: java.util.Locale,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -283,7 +292,9 @@ private fun BookingListCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = propertyName,
+                        text = listOf(propertyName, bookingReference)
+                            .filter { it.isNotBlank() }
+                            .joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

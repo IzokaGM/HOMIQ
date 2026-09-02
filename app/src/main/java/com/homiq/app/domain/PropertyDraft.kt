@@ -3,6 +3,7 @@ package com.homiq.app.domain
 data class PropertyDraft(
     val id: String? = null,
     val name: String,
+    val bookingCode: String,
     val address: String,
     val notes: String,
     val defaultNightlyRateSen: Long,
