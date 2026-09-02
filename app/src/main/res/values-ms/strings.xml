@@ -516,4 +516,9 @@
     <string name="updater_error_signature">APK yang dimuat turun menggunakan sijil tandatangan yang berbeza, jadi Homika menyekat kemas kini demi keselamatan.</string>
     <string name="updater_error_install">Android tidak dapat memulakan atau melengkapkan pemasang Homika.</string>
 
+
+    <string name="booking_action_view">Lihat tempahan</string>
+    <string name="booking_action_delete">Padam tempahan</string>
+    <string name="booking_delete_title">Padam tempahan?</string>
+    <string name="booking_delete_message">Padam tempahan untuk %1$s? Tempahan ini akan dibuang daripada senarai tempahan dan kalendar. Tindakan ini tidak boleh dibuat asal.</string>
 </resources>

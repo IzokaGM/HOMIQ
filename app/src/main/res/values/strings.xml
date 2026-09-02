@@ -516,4 +516,9 @@
     <string name="updater_error_signature">The downloaded APK is signed with a different certificate, so Homika blocked the update for safety.</string>
     <string name="updater_error_install">Android could not start or complete the Homika installer.</string>
 
+
+    <string name="booking_action_view">View booking</string>
+    <string name="booking_action_delete">Delete booking</string>
+    <string name="booking_delete_title">Delete booking?</string>
+    <string name="booking_delete_message">Delete the booking for %1$s? This removes it from bookings and calendar. This action cannot be undone.</string>
 </resources>

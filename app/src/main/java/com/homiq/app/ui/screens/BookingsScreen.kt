@@ -1,5 +1,7 @@
 package com.homiq.app.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,15 +17,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EventNote
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,6 +52,7 @@ import com.homiq.app.ui.util.labelRes
 import com.homiq.app.ui.viewmodel.BookingViewModel
 import java.time.LocalDate
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BookingsScreen(
     viewModel: BookingViewModel,
@@ -56,6 +65,8 @@ fun BookingsScreen(
     val today = LocalDate.now().toEpochDay()
     val propertyNames = remember(properties) { properties.associate { it.id to it.name } }
     var selectedFilter by remember { mutableIntStateOf(0) }
+    var actionBooking by remember { mutableStateOf<BookingEntity?>(null) }
+    var deleteBooking by remember { mutableStateOf<BookingEntity?>(null) }
     val filters = listOf(
         stringResource(R.string.filter_all),
         stringResource(R.string.filter_upcoming),
@@ -131,21 +142,123 @@ fun BookingsScreen(
                     propertyName = propertyNames[booking.propertyId].orEmpty(),
                     locale = locale,
                     onClick = { onBookingClick(booking.id) },
+                    onLongClick = { actionBooking = booking },
                 )
             }
         }
     }
+
+    val selectedActionBooking = actionBooking
+    if (selectedActionBooking != null) {
+        ModalBottomSheet(
+            onDismissRequest = { actionBooking = null },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = selectedActionBooking.guestName,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                androidx.compose.material3.ListItem(
+                    modifier = Modifier.clickable {
+                        actionBooking = null
+                        onBookingClick(selectedActionBooking.id)
+                    },
+                    headlineContent = {
+                        Text(stringResource(R.string.booking_action_view))
+                    },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.EventNote,
+                            contentDescription = null,
+                        )
+                    },
+                )
+                androidx.compose.material3.ListItem(
+                    modifier = Modifier.clickable {
+                        actionBooking = null
+                        deleteBooking = selectedActionBooking
+                    },
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.booking_action_delete),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                )
+            }
+        }
+    }
+
+    val selectedDeleteBooking = deleteBooking
+    if (selectedDeleteBooking != null) {
+        AlertDialog(
+            onDismissRequest = { deleteBooking = null },
+            title = {
+                Text(stringResource(R.string.booking_delete_title))
+            },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.booking_delete_message,
+                        selectedDeleteBooking.guestName,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.delete(selectedDeleteBooking.id)
+                        deleteBooking = null
+                    },
+                ) {
+                    Text(
+                        text = stringResource(R.string.booking_action_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deleteBooking = null },
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BookingListCard(
     booking: BookingEntity,
     propertyName: String,
     locale: java.util.Locale,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class BookingViewModel(
     properties: PropertyRepository,
@@ -52,4 +53,10 @@ class BookingViewModel(
 
     suspend fun cancel(bookingId: String): Boolean =
         bookingManager.cancel(bookingId)
+
+    fun delete(bookingId: String) {
+        viewModelScope.launch {
+            bookings.delete(bookingId)
+        }
+    }
 }
