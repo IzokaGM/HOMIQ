@@ -3,13 +3,13 @@
     <string name="backup_final_subtitle">Back up Homika to Google Drive or keep a portable file copy.</string>
     <string name="backup_auto_title">Automatic backup</string>
     <string name="backup_auto_body">Back up to Google Drive after every business-data change. Nearby changes are combined into one upload.</string>
-    <string name="backup_auto_requires_drive">Connect Google Drive first to enable automatic backup.</string>
+    <string name="backup_auto_requires_drive">Sign in to Google in Account first to enable automatic Drive backup.</string>
     <string name="backup_auto_pending">Backup pending · Homika will retry automatically</string>
     <string name="backup_auto_running">Backing up to Google Drive…</string>
     <string name="backup_now_title">Back up now</string>
     <string name="backup_to_google_drive">Back up to Google Drive</string>
     <string name="backup_save_to_device">Save backup file</string>
-    <string name="backup_drive_connect_hint">Google Drive backup uses the same connected account as Drive Sync. Connect it from More → Google Drive sync.</string>
+    <string name="backup_drive_connect_hint">Google Drive backup uses the Google account in More → Account. Drive Sync does not need to be enabled.</string>
     <string name="restore_title_short">Restore</string>
     <string name="restore_from_google_drive">Restore from Google Drive</string>
     <string name="restore_from_file">Restore from file</string>

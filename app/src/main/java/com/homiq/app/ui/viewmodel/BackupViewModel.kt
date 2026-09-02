@@ -19,7 +19,7 @@ import com.homiq.app.data.backup.DriveBackupReadResult
 import com.homiq.app.data.backup.DriveBackupService
 import com.homiq.app.data.backup.DriveBackupWriteResult
 import com.homiq.app.data.backup.HomiqBackupService
-import com.homiq.app.data.sync.HomiqSyncService
+import com.homiq.app.data.account.AccountPreferences
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,8 +85,8 @@ class BackupViewModel(
         BackupPreferences,
     private val autoBackupService:
         AutoBackupService,
-    private val syncService:
-        HomiqSyncService,
+    private val accountPreferences:
+        AccountPreferences,
 ) : ViewModel() {
     private var pendingFileRestoreUri: Uri? =
         null
@@ -106,10 +106,10 @@ class BackupViewModel(
                     backupPreferences
                         .lastRestoreSource,
                 driveConnected =
-                    syncService
+                    accountPreferences
                         .state
                         .value
-                        .enabled,
+                        .googleConnected,
                 autoBackupEnabled =
                     backupPreferences
                         .autoBackupEnabled,
@@ -131,11 +131,11 @@ class BackupViewModel(
 
     init {
         viewModelScope.launch {
-            syncService.state.collect {
+            accountPreferences.state.collect {
                 mutableState.value =
                     mutableState.value.copy(
                         driveConnected =
-                            it.enabled,
+                            it.googleConnected,
                     )
             }
         }
@@ -148,6 +148,9 @@ class BackupViewModel(
                             it.pending,
                         autoBackupRunning =
                             it.isBackingUp,
+                        autoBackupEnabled =
+                            backupPreferences
+                                .autoBackupEnabled,
                         history =
                             service.history(),
                         lastBackupDestination =

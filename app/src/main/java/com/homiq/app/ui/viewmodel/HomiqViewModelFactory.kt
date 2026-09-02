@@ -18,6 +18,20 @@ class HomiqViewModelFactory(
     ): T {
         return when {
             modelClass.isAssignableFrom(
+                AccountViewModel::class.java,
+            ) ->
+                AccountViewModel(
+                    accountPreferences =
+                        container.accountPreferences,
+                    accountService =
+                        container.accountService,
+                    syncService =
+                        container.syncService,
+                    autoBackupService =
+                        container.autoBackupService,
+                ) as T
+
+            modelClass.isAssignableFrom(
                 AppLockViewModel::class.java,
             ) ->
                 AppLockViewModel(
@@ -174,8 +188,8 @@ class HomiqViewModelFactory(
                     autoBackupService =
                         container
                             .autoBackupService,
-                    syncService =
-                        container.syncService,
+                    accountPreferences =
+                        container.accountPreferences,
                 ) as T
 
             modelClass.isAssignableFrom(

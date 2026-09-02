@@ -1,5 +1,6 @@
 package com.homiq.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -34,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.homiq.app.HomiqApplication
 import com.homiq.app.BuildConfig
 import com.homiq.app.R
 import com.homiq.app.data.preferences.AppearanceMode
@@ -52,6 +57,8 @@ import com.homiq.app.data.preferences.AppearancePreferences
 import com.homiq.app.data.preferences.TextSizeMode
 import com.homiq.app.ui.components.HomikaBrandMark
 import com.homiq.app.ui.theme.LocalHomikaTextSize
+import com.homiq.app.ui.viewmodel.AccountViewModel
+import com.homiq.app.ui.viewmodel.HomiqViewModelFactory
 
 @Composable
 fun MoreScreen(
@@ -65,6 +72,33 @@ fun MoreScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val application =
+        context.applicationContext as HomiqApplication
+    val factory = remember(application) {
+        HomiqViewModelFactory(application.container)
+    }
+    val accountViewModel: AccountViewModel =
+        viewModel(factory = factory)
+    val accountState by
+        accountViewModel.state
+            .collectAsStateWithLifecycle()
+    var showAccount by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    BackHandler(enabled = showAccount) {
+        showAccount = false
+    }
+
+    if (showAccount) {
+        AccountScreen(
+            viewModel = accountViewModel,
+            onBack = { showAccount = false },
+            modifier = modifier,
+        )
+        return
+    }
+
     val configuration = LocalConfiguration.current
     val explicitLocales = AppCompatDelegate.getApplicationLocales().toLanguageTags()
     val currentLanguage = if (explicitLocales.isBlank()) {
@@ -97,14 +131,36 @@ fun MoreScreen(
             CompactSettingRow(
                 icon = Icons.Outlined.Person,
                 title = stringResource(R.string.account),
-                supporting = stringResource(
-                    if (syncEnabled) R.string.account_connected_supporting
-                    else R.string.account_local_supporting,
-                ),
+                supporting =
+                    if (
+                        accountState.account
+                            .googleConnected
+                    ) {
+                        accountState.account.googleEmail
+                            ?: stringResource(
+                                R.string
+                                    .account_connected_supporting,
+                            )
+                    } else {
+                        accountState.account
+                            .localProfileName
+                            .takeIf { it.isNotBlank() }
+                            ?: stringResource(
+                                R.string
+                                    .account_local_supporting,
+                            )
+                    },
                 trailing = stringResource(
-                    if (syncEnabled) R.string.sync_connected else R.string.optional,
+                    if (
+                        accountState.account
+                            .googleConnected
+                    ) {
+                        R.string.account_google_short
+                    } else {
+                        R.string.account_local_short
+                    },
                 ),
-                onClick = onSyncClick,
+                onClick = { showAccount = true },
             )
         }
 

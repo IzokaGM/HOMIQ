@@ -1,6 +1,8 @@
 package com.homiq.app.data
 
 import android.content.Context
+import com.homiq.app.data.account.AccountPreferences
+import com.homiq.app.data.account.GoogleAccountService
 import com.homiq.app.data.backup.AutoBackupService
 import com.homiq.app.data.backup.BackupPreferences
 import com.homiq.app.data.backup.DriveBackupService
@@ -94,6 +96,10 @@ class HomiqAppContainer(
         )
     }
 
+    val accountPreferences: AccountPreferences by lazy {
+        AccountPreferences(context)
+    }
+
     val backupPreferences: BackupPreferences by lazy {
         BackupPreferences(context)
     }
@@ -110,12 +116,21 @@ class HomiqAppContainer(
         GoogleDriveAuthorization(context)
     }
 
+    val accountService: GoogleAccountService by lazy {
+        GoogleAccountService(
+            authorization = driveAuthorization,
+            preferences = accountPreferences,
+            syncPreferences = syncPreferences,
+            backupPreferences = backupPreferences,
+        )
+    }
+
     val driveBackupService: DriveBackupService by lazy {
         DriveBackupService(
             database = database,
             authorization = driveAuthorization,
             drive = GoogleDriveBackupClient(),
-            syncPreferences = syncPreferences,
+            accountPreferences = accountPreferences,
             backupPreferences = backupPreferences,
         )
     }
@@ -124,7 +139,7 @@ class HomiqAppContainer(
         AutoBackupService(
             driveBackup = driveBackupService,
             preferences = backupPreferences,
-            syncPreferences = syncPreferences,
+            accountPreferences = accountPreferences,
             changes = syncChanges,
         )
     }
@@ -146,6 +161,7 @@ class HomiqAppContainer(
                 ),
             preferences = syncPreferences,
             changes = syncChanges,
+            accountService = accountService,
         )
     }
 }

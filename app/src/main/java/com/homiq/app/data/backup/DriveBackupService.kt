@@ -7,7 +7,7 @@ import com.homiq.app.data.local.HomiqDatabase
 import com.homiq.app.data.sync.DriveAuthorizationResult
 import com.homiq.app.data.sync.GoogleDriveAuthorization
 import com.homiq.app.data.sync.SyncFailureReason
-import com.homiq.app.data.sync.SyncPreferences
+import com.homiq.app.data.account.AccountPreferences
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -60,14 +60,14 @@ class DriveBackupService(
     private val database: HomiqDatabase,
     private val authorization: GoogleDriveAuthorization,
     private val drive: GoogleDriveBackupClient,
-    private val syncPreferences: SyncPreferences,
+    private val accountPreferences: AccountPreferences,
     private val backupPreferences: BackupPreferences,
 ) {
     private val mutex = Mutex()
 
     suspend fun createBackup():
         DriveBackupWriteResult {
-        if (!syncPreferences.state().enabled) {
+        if (!accountPreferences.state.value.googleConnected) {
             return DriveBackupWriteResult.Failure(
                 DriveBackupFailureReason.NOT_CONNECTED,
             )
@@ -117,7 +117,7 @@ class DriveBackupService(
 
     suspend fun readLatestBackup():
         DriveBackupReadResult {
-        if (!syncPreferences.state().enabled) {
+        if (!accountPreferences.state.value.googleConnected) {
             return DriveBackupReadResult.Failure(
                 DriveBackupFailureReason.NOT_CONNECTED,
             )

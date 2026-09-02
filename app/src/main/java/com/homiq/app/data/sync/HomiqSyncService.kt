@@ -2,6 +2,7 @@ package com.homiq.app.data.sync
 
 import android.app.PendingIntent
 import android.content.Intent
+import com.homiq.app.data.account.GoogleAccountService
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,8 @@ class HomiqSyncService(
         SyncPreferences,
     private val changes:
         SyncChangeSignal,
+    private val accountService:
+        GoogleAccountService,
 ) {
     private val scope =
         CoroutineScope(
@@ -116,6 +119,9 @@ class HomiqSyncService(
         ) {
             is DriveAuthorizationResult
                 .Authorized -> {
+                accountService.rememberAuthorizedToken(
+                    auth.accessToken,
+                )
                 preferences.setEnabled(true)
                 mutableState.value =
                     mutableState.value.copy(
@@ -151,6 +157,9 @@ class HomiqSyncService(
         ) {
             is DriveAuthorizationResult
                 .Authorized -> {
+                accountService.rememberAuthorizedToken(
+                    auth.accessToken,
+                )
                 preferences.setEnabled(true)
                 mutableState.value =
                     mutableState.value.copy(
@@ -206,22 +215,15 @@ class HomiqSyncService(
     }
 
     suspend fun disconnect(): Boolean {
-        val revoked =
-            authorization.revoke()
-
-        if (revoked) {
-            preferences.setEnabled(false)
-            mutableState.value =
-                mutableState.value.copy(
-                    enabled = false,
-                    isSyncing = false,
-                    authorizationRequired =
-                        false,
-                    lastFailure = null,
-                )
-        }
-
-        return revoked
+        preferences.setEnabled(false)
+        mutableState.value =
+            mutableState.value.copy(
+                enabled = false,
+                isSyncing = false,
+                authorizationRequired = false,
+                lastFailure = null,
+            )
+        return true
     }
 
     private suspend fun syncSilently() {

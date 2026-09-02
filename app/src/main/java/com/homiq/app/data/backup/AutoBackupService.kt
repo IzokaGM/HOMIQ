@@ -1,7 +1,7 @@
 package com.homiq.app.data.backup
 
 import com.homiq.app.data.sync.SyncChangeSignal
-import com.homiq.app.data.sync.SyncPreferences
+import com.homiq.app.data.account.AccountPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,8 +24,8 @@ class AutoBackupService(
         DriveBackupService,
     private val preferences:
         BackupPreferences,
-    private val syncPreferences:
-        SyncPreferences,
+    private val accountPreferences:
+        AccountPreferences,
     private val changes:
         SyncChangeSignal,
 ) {
@@ -145,9 +145,10 @@ class AutoBackupService(
         }
 
         if (
-            !syncPreferences
-                .state()
-                .enabled
+            !accountPreferences
+                .state
+                .value
+                .googleConnected
         ) {
             mutableState.value =
                 mutableState.value.copy(

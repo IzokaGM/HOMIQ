@@ -38,6 +38,9 @@ class GoogleDriveAuthorization(
     private val scopes =
         listOf(
             Scope(Scopes.DRIVE_APPFOLDER),
+            Scope("openid"),
+            Scope("email"),
+            Scope("profile"),
         )
 
     private val request =
