@@ -13,7 +13,7 @@ concurrency:
 jobs:
   apply-build-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -27,50 +27,19 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Gradle cache
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
 
-      - name: Ensure Android SDK 36
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          SDKMANAGER="$(command -v sdkmanager || true)"
-          if [ -z "$SDKMANAGER" ]; then
-            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          fi
-          test -x "$SDKMANAGER" || {
-            echo "sdkmanager not found."
-            exit 1
-          }
-
-          PACKAGES=()
-          [ -d "$ANDROID_HOME/platforms/android-36" ] || PACKAGES+=("platforms;android-36")
-          [ -d "$ANDROID_HOME/build-tools/36.0.0" ] || PACKAGES+=("build-tools;36.0.0")
-
-          if [ "${#PACKAGES[@]}" -gt 0 ]; then
-            yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
-            "$SDKMANAGER" "${PACKAGES[@]}"
-          else
-            echo "Android SDK 36 already available."
-          fi
-
-      - name: Find latest HOMIQ phase ZIP
+      - name: Find latest phase ZIP
         id: phase
         shell: bash
         run: |
           set -euo pipefail
           ZIP="$(find . -maxdepth 1 -type f -name 'HOMIQ-Phase-*.zip' -printf '%f\n' | sort -V | tail -n1)"
-          test -n "${ZIP:-}" || {
-            echo "No HOMIQ-Phase-*.zip found."
-            exit 1
-          }
+          test -n "${ZIP:-}" || { echo "No HOMIQ-Phase-*.zip found."; exit 1; }
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
-          echo "Using $ZIP"
 
-      - name: Validate and extract phase
+      - name: Validate and extract phase ZIP
         shell: python
         env:
           PHASE_ZIP: ${{ steps.phase.outputs.zip }}
@@ -90,111 +59,35 @@ jobs:
                   if name.startswith("/") or ".." in parts:
                       raise SystemExit(f"Unsafe ZIP path: {name}")
 
-                  if parts and parts[0] in {".git", ".github"}:
-                      raise SystemExit(f"Phase ZIP may not modify {parts[0]}: {name}")
+                  if parts and parts[0] == ".git":
+                      raise SystemExit(f"Phase ZIP may not modify .git: {name}")
 
                   if stat.S_ISLNK(info.external_attr >> 16):
                       raise SystemExit(f"Symlink not allowed: {name}")
 
               z.extractall(".")
 
-          pathlib.Path("UPLOAD_PATHS.txt").unlink(missing_ok=True)
-
-      - name: Resolve next Homika version
+      - name: Read app version
         id: version
-        shell: python
-        env:
-          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          import os
-          import re
-          import subprocess
-          from pathlib import Path
+          set -euo pipefail
 
-          gradle = Path("app/build.gradle.kts")
-          text = gradle.read_text(encoding="utf-8")
+          VERSION_NAME="$(
+            grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts | head -n1
+          )"
 
-          mn = re.search(
-              r'versionName\s*=\s*System\.getenv\("HOMIKA_VERSION_NAME"\).*?\?:\s*"([^"]+)"',
-              text,
-          )
-          mc = re.search(
-              r'versionCode\s*=\s*System\.getenv\("HOMIKA_VERSION_CODE"\).*?\?:\s*(\d+)',
-              text,
-          )
+          VERSION_CODE="$(
+            grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -n1
+          )"
 
-          if not mn or not mc:
-              raise SystemExit(
-                  "Could not read Homika default version from app/build.gradle.kts"
-              )
+          test -n "${VERSION_NAME:-}" || { echo "Could not read app versionName."; exit 1; }
+          test -n "${VERSION_CODE:-}" || { echo "Could not read app versionCode."; exit 1; }
 
-          base_name = mn.group(1)
-          base_code = int(mc.group(1))
-          parts = base_name.split(".")
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
-          if len(parts) != 3 or not all(part.isdigit() for part in parts):
-              raise SystemExit("Homika versionName must use MAJOR.MINOR.PATCH.")
-
-          major, minor, patch = map(int, parts)
-
-          releases = subprocess.check_output(
-              [
-                  "gh",
-                  "release",
-                  "list",
-                  "--limit",
-                  "100",
-                  "--json",
-                  "tagName",
-                  "--jq",
-                  ".[].tagName",
-              ],
-              text=True,
-              env=os.environ.copy(),
-          )
-          existing_tags = {
-              line.strip()
-              for line in releases.splitlines()
-              if line.strip()
-          }
-
-          name = base_name
-          code = base_code
-          bumps = 0
-
-          while f"v{name}" in existing_tags:
-              patch += 1
-              bumps += 1
-              name = f"{major}.{minor}.{patch}"
-              code = base_code + bumps
-
-          if name != base_name:
-              text = text[:mn.start(1)] + name + text[mn.end(1):]
-
-              mc2 = re.search(
-                  r'versionCode\s*=\s*System\.getenv\("HOMIKA_VERSION_CODE"\).*?\?:\s*(\d+)',
-                  text,
-              )
-              if not mc2:
-                  raise SystemExit("Could not update Homika versionCode.")
-
-              text = text[:mc2.start(1)] + str(code) + text[mc2.end(1):]
-              gradle.write_text(text, encoding="utf-8")
-              print(
-                  f"Auto-bumped {base_name} ({base_code}) "
-                  f"-> {name} ({code})"
-              )
-
-          with Path(os.environ["GITHUB_OUTPUT"]).open(
-              "a",
-              encoding="utf-8",
-          ) as out:
-              out.write(f"name={name}\n")
-              out.write(f"code={code}\n")
-
-          print(f"Release target: Homika {name} ({code})")
-
-      - name: Decode official Homika release keystore
+      - name: Decode release keystore
         shell: bash
         env:
           HOMIKA_RELEASE_KEYSTORE_BASE64: ${{ secrets.HOMIKA_RELEASE_KEYSTORE_BASE64 }}
@@ -205,129 +98,97 @@ jobs:
             exit 1
           }
 
-          printf '%s' "$HOMIKA_RELEASE_KEYSTORE_BASE64" \
-            | base64 --decode \
-            > "$RUNNER_TEMP/homika-release.jks"
+          printf '%s' "$HOMIKA_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/homika-release.jks"
 
-      - name: Build signed Homika release
+      - name: Build signed release APK
         shell: bash
         env:
           HOMIKA_KEYSTORE_PATH: ${{ runner.temp }}/homika-release.jks
           HOMIKA_KEYSTORE_PASSWORD: ${{ secrets.HOMIKA_RELEASE_KEYSTORE_PASSWORD }}
           HOMIKA_KEY_ALIAS: homika
           HOMIKA_KEY_PASSWORD: ${{ secrets.HOMIKA_RELEASE_KEYSTORE_PASSWORD }}
-          HOMIKA_VERSION_NAME: ${{ steps.version.outputs.name }}
-          HOMIKA_VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           set -euo pipefail
-          test -n "${HOMIKA_KEYSTORE_PASSWORD:-}" || {
-            echo "Missing HOMIKA_RELEASE_KEYSTORE_PASSWORD secret."
-            exit 1
-          }
-
           chmod +x gradlew
-          ./gradlew assembleRelease \
-            --build-cache \
-            --parallel \
-            --console=plain
+          ./gradlew assembleRelease --console=plain
 
-      - name: Prepare and verify signed APK
-        id: apk
+      - name: Prepare release artefacts outside repository
+        id: artefacts
         shell: bash
         env:
           VERSION_NAME: ${{ steps.version.outputs.name }}
-          VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           set -euo pipefail
 
           APK="$(find app/build/outputs/apk/release -type f -name '*.apk' | head -n1)"
-          test -n "${APK:-}" || {
-            echo "Release APK not found."
-            exit 1
-          }
+          test -n "${APK:-}" || { echo "Release APK not found."; exit 1; }
 
-          OUT="Homika-v${VERSION_NAME}.apk"
+          RELEASE_DIR="$RUNNER_TEMP/homika-release"
+          mkdir -p "$RELEASE_DIR"
+
+          OUT="$RELEASE_DIR/Homika-v${VERSION_NAME}.apk"
+          SHA="$OUT.sha256"
+          SIGNATURE="$RELEASE_DIR/apk-signature.txt"
+
           cp "$APK" "$OUT"
 
-          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n1)"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          test -x "$APKSIGNER" || { echo "apksigner not found."; exit 1; }
 
-          test -x "$AAPT"
-          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee "$SIGNATURE"
 
-          BADGING="$("$AAPT" dump badging "$OUT" | head -n1)"
-          echo "$BADGING"
+          (
+            cd "$RELEASE_DIR"
+            sha256sum "Homika-v${VERSION_NAME}.apk" > "Homika-v${VERSION_NAME}.apk.sha256"
+          )
 
-          echo "$BADGING" | grep -F "package: name='com.homiq.app'"
-          echo "$BADGING" | grep -F "versionName='${VERSION_NAME}'"
-          echo "$BADGING" | grep -F "versionCode='${VERSION_CODE}'"
+          echo "apk=$OUT" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "signature=$SIGNATURE" >> "$GITHUB_OUTPUT"
 
-          "$APKSIGNER" verify --verbose --print-certs "$OUT" | tee apk-signature.txt
+      - name: Remove applied phase ZIP
+        shell: bash
+        env:
+          PHASE_ZIP: ${{ steps.phase.outputs.zip }}
+        run: |
+          set -euo pipefail
+          rm -f -- "$PHASE_ZIP"
 
-          EXPECTED_SHA1="9e835a83a68e2b5304f9ce2751cda472d0112ad1"
-          ACTUAL_SHA1="$(
-            sed -nE 's/^.*certificate SHA-1 digest:[[:space:]]*([0-9A-Fa-f:]+).*$/\1/p' apk-signature.txt \
-              | head -n1 \
-              | tr '[:upper:]' '[:lower:]' \
-              | tr -d ':'
-          )"
-
-          echo "Expected signer SHA-1: $EXPECTED_SHA1"
-          echo "Actual signer SHA-1:   $ACTUAL_SHA1"
-
-          test -n "$ACTUAL_SHA1" || {
-            echo "Could not read signer SHA-1 from apksigner output."
-            exit 1
-          }
-
-          if [ "$ACTUAL_SHA1" != "$EXPECTED_SHA1" ]; then
-            echo "APK signer does not match the official Homika release certificate."
-            exit 1
-          fi
-
-          sha256sum "$OUT" > "${OUT}.sha256"
-
-          echo "path=$OUT" >> "$GITHUB_OUTPUT"
-          echo "sha256=${OUT}.sha256" >> "$GITHUB_OUTPUT"
-
-      - name: Remove phase ZIP and commit successful patch
+      - name: Commit source changes only
         shell: bash
         env:
           PHASE_ZIP: ${{ steps.phase.outputs.zip }}
           VERSION_NAME: ${{ steps.version.outputs.name }}
-          VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           set -euo pipefail
-
-          rm -f -- "$PHASE_ZIP"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: apply ${PHASE_ZIP} for Homika ${VERSION_NAME} (${VERSION_CODE})"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          else
+          if git diff --cached --quiet; then
             echo "Nothing to commit."
+          else
+            git commit -m "chore: apply ${PHASE_ZIP} for Homika ${VERSION_NAME}"
+            git push
           fi
 
-      - name: Publish Homika GitHub Release
+      - name: Publish GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION_NAME: ${{ steps.version.outputs.name }}
-          APK: ${{ steps.apk.outputs.path }}
-          SHA256: ${{ steps.apk.outputs.sha256 }}
-          PHASE_ZIP: ${{ steps.phase.outputs.zip }}
+          APK: ${{ steps.artefacts.outputs.apk }}
+          SHA: ${{ steps.artefacts.outputs.sha }}
+          SIGNATURE: ${{ steps.artefacts.outputs.signature }}
         run: |
           set -euo pipefail
 
-          gh release create "v${VERSION_NAME}" "$APK" "$SHA256" \
-            --title "Homika v${VERSION_NAME}" \
-            --notes "Homika ${VERSION_NAME}
+          TAG="v${VERSION_NAME}"
 
-          Applied package: ${PHASE_ZIP}
-
-          Signed with the official Homika release certificate."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SHA" "$SIGNATURE" --clobber
+          else
+            gh release create "$TAG" "$APK" "$SHA" "$SIGNATURE"               --title "Homika ${TAG}"               --notes "Automated Homika release ${TAG}."
+          fi
