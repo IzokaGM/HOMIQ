@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,6 +90,7 @@ import com.homiq.app.ui.viewmodel.MoneyViewModel
 import com.homiq.app.ui.viewmodel.PropertyViewModel
 import com.homiq.app.ui.viewmodel.ReportsViewModel
 import com.homiq.app.ui.viewmodel.SyncViewModel
+import kotlinx.coroutines.launch
 
 private enum class HomiqDestination(
     @StringRes val labelRes: Int,
@@ -183,6 +185,9 @@ fun HomiqApp() {
         HomiqRoute.entries.firstOrNull { it.name == routeName } ?: HomiqRoute.MAIN
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val activity = LocalContext.current as? android.app.Activity
+    var lastBackPressMillis by rememberSaveable { mutableStateOf(0L) }
 
     fun navigate(
         newRoute: HomiqRoute,
@@ -201,24 +206,44 @@ fun HomiqApp() {
         navigate(HomiqRoute.MAIN)
     }
 
-    BackHandler(enabled = route != HomiqRoute.MAIN) {
-        when (route) {
-            HomiqRoute.PROPERTY_FORM -> navigate(HomiqRoute.PROPERTIES)
-            HomiqRoute.BOOKING_FORM -> {
-                if (routeId != null) navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
-                else goMain(HomiqDestination.Calendar)
+    BackHandler {
+        if (route != HomiqRoute.MAIN) {
+            when (route) {
+                HomiqRoute.PROPERTY_FORM -> navigate(HomiqRoute.PROPERTIES)
+                HomiqRoute.BOOKING_FORM -> {
+                    if (routeId != null) navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
+                    else goMain(HomiqDestination.Calendar)
+                }
+                HomiqRoute.BOOKING_DETAIL -> goMain(HomiqDestination.Bookings)
+                HomiqRoute.BLOCK_DATE_FORM -> goMain(HomiqDestination.Calendar)
+                HomiqRoute.PAYMENT_PICKER -> goMain(HomiqDestination.Bookings)
+                HomiqRoute.PAYMENT_FORM -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
+                HomiqRoute.DEPOSIT -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
+                HomiqRoute.EXPENSE_FORM -> goMain(HomiqDestination.Money)
+                HomiqRoute.REPORTS -> goMain(HomiqDestination.Home)
+                HomiqRoute.BACKUP,
+                HomiqRoute.SYNC,
+                HomiqRoute.SECURITY,
+                HomiqRoute.PROPERTIES -> goMain(HomiqDestination.More)
+                HomiqRoute.MAIN -> Unit
             }
-            HomiqRoute.BOOKING_DETAIL -> goMain(HomiqDestination.Bookings)
-            HomiqRoute.BLOCK_DATE_FORM -> goMain(HomiqDestination.Calendar)
-            HomiqRoute.PAYMENT_PICKER -> goMain(HomiqDestination.Bookings)
-            HomiqRoute.PAYMENT_FORM -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
-            HomiqRoute.DEPOSIT -> navigate(HomiqRoute.BOOKING_DETAIL, id = routeId)
-            HomiqRoute.EXPENSE_FORM -> goMain(HomiqDestination.Money)
-            HomiqRoute.REPORTS -> goMain(HomiqDestination.Home)
-            HomiqRoute.BACKUP, HomiqRoute.SYNC, HomiqRoute.SECURITY, HomiqRoute.PROPERTIES -> goMain(HomiqDestination.More)
-            HomiqRoute.MAIN -> Unit
+        } else if (selectedDestination != HomiqDestination.Home) {
+            destinationName = HomiqDestination.Home.name
+        } else {
+            val now = System.currentTimeMillis()
+            if (now - lastBackPressMillis <= 2000L) {
+                activity?.finish()
+            } else {
+                lastBackPressMillis = now
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Press back again to exit",
+                    )
+                }
+            }
         }
     }
+
 
     if (route == HomiqRoute.MAIN) {
         Scaffold(
