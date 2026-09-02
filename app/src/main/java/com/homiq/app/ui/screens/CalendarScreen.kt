@@ -73,6 +73,25 @@ private data class CalendarPropertyOption(
     val name: String,
 )
 
+private sealed interface CalendarMonthItem {
+    val key: String
+    val sortEpochDay: Long
+
+    data class BookingItem(
+        val booking: BookingEntity,
+    ) : CalendarMonthItem {
+        override val key: String = "booking-${booking.id}"
+        override val sortEpochDay: Long = booking.checkInEpochDay
+    }
+
+    data class BlockItem(
+        val block: BlockedDateEntity,
+    ) : CalendarMonthItem {
+        override val key: String = "block-${block.id}"
+        override val sortEpochDay: Long = block.startEpochDay
+    }
+}
+
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
@@ -99,6 +118,7 @@ fun CalendarScreen(
         mutableStateOf(calendarPreferences.selectedPropertyId)
     }
     var selectedDay by remember { mutableLongStateOf(today.toEpochDay()) }
+    var showMonthList by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.month) {
         if (YearMonth.from(LocalDate.ofEpochDay(selectedDay)) != state.month) {
@@ -177,6 +197,41 @@ fun CalendarScreen(
     val propertyNames = remember(state.properties) {
         state.properties.associate { it.id to it.name }
     }
+    val monthStartEpochDay = remember(state.month) {
+        state.month.atDay(1).toEpochDay()
+    }
+    val monthEndExclusiveEpochDay = remember(state.month) {
+        state.month.plusMonths(1).atDay(1).toEpochDay()
+    }
+    val monthItems = remember(
+        filteredBookings,
+        filteredBlocks,
+        monthStartEpochDay,
+        monthEndExclusiveEpochDay,
+    ) {
+        buildList<CalendarMonthItem> {
+            filteredBookings
+                .filter {
+                    it.checkInEpochDay < monthEndExclusiveEpochDay &&
+                        it.checkOutEpochDay >= monthStartEpochDay
+                }
+                .forEach {
+                    add(CalendarMonthItem.BookingItem(it))
+                }
+
+            filteredBlocks
+                .filter {
+                    it.startEpochDay < monthEndExclusiveEpochDay &&
+                        it.endEpochDay > monthStartEpochDay
+                }
+                .forEach {
+                    add(CalendarMonthItem.BlockItem(it))
+                }
+        }.sortedWith(
+            compareBy<CalendarMonthItem> { it.sortEpochDay }
+                .thenBy { it.key },
+        )
+    }
     val monthTitle = remember(state.month, locale) {
         state.month.format(
             DateTimeFormatter.ofPattern("MMMM yyyy", locale),
@@ -187,6 +242,7 @@ fun CalendarScreen(
 
     val handleDayLongPress: (Long) -> Unit = { epochDay ->
         selectedDay = epochDay
+        showMonthList = false
 
         val dayBookings = filteredBookings.filter {
             epochDay >= it.checkInEpochDay &&
@@ -282,8 +338,18 @@ fun CalendarScreen(
                         Text(
                             text = monthTitle,
                             style = MaterialTheme.typography.titleMedium,
+                            color = if (showMonthList) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    showMonthList = !showMonthList
+                                }
+                                .padding(vertical = 8.dp),
                         )
                         IconButton(
                             onClick = viewModel::nextMonth,
@@ -302,12 +368,16 @@ fun CalendarScreen(
                         selectedDay = selectedDay,
                         bookings = filteredBookings,
                         blocks = filteredBlocks,
-                        onDayClick = { selectedDay = it },
+                        onDayClick = {
+                            selectedDay = it
+                            showMonthList = false
+                        },
                         onDayLongClick = handleDayLongPress,
                     )
                     TextButton(
                         onClick = {
                             selectedDay = today.toEpochDay()
+                            showMonthList = false
                             viewModel.goToToday()
                         },
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -323,59 +393,115 @@ fun CalendarScreen(
         }
         item { AvailabilityLegend() }
 
-        item {
-            Text(
-                text = stringResource(
-                    R.string.selected_date_title,
-                    formatEpochDay(selectedDay, locale),
-                ),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-
-        if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
+        if (showMonthList) {
             item {
-                EmptyStateCard(
-                    title = stringResource(R.string.date_available),
-                    body = stringResource(R.string.date_available_body),
-                    icon = Icons.Outlined.Event,
-                    compact = true,
+                Text(
+                    text = stringResource(
+                        R.string.calendar_month_list_title,
+                        monthTitle,
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
                 )
+            }
+
+            if (monthItems.isEmpty()) {
+                item {
+                    EmptyStateCard(
+                        title = stringResource(R.string.calendar_month_list_empty_title),
+                        body = stringResource(R.string.calendar_month_list_empty_body),
+                        icon = Icons.Outlined.Event,
+                        compact = true,
+                    )
+                }
+            } else {
+                items(
+                    items = monthItems,
+                    key = { it.key },
+                ) { item ->
+                    when (item) {
+                        is CalendarMonthItem.BookingItem -> {
+                            CalendarMonthBookingRow(
+                                booking = item.booking,
+                                propertyName = propertyNames[item.booking.propertyId].orEmpty(),
+                                locale = locale,
+                                onClick = {
+                                    onBookingClick(item.booking.id)
+                                },
+                            )
+                        }
+
+                        is CalendarMonthItem.BlockItem -> {
+                            CalendarMonthBlockRow(
+                                block = item.block,
+                                propertyName = propertyNames[item.block.propertyId].orEmpty(),
+                                locale = locale,
+                                onClick = {
+                                    selectedDay = maxOf(
+                                        item.block.startEpochDay,
+                                        monthStartEpochDay,
+                                    )
+                                    showMonthList = false
+                                },
+                            )
+                        }
+                    }
+                }
             }
         } else {
-            items(
-                items = selectedBookings,
-                key = { "booking-${it.id}" },
-            ) { booking ->
-                CalendarBookingRow(
-                    booking = booking,
-                    propertyName = propertyNames[booking.propertyId].orEmpty(),
-                    onClick = { onBookingClick(booking.id) },
+            item {
+                Text(
+                    text = stringResource(
+                        R.string.selected_date_title,
+                        formatEpochDay(selectedDay, locale),
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
 
-            items(
-                items = selectedBlocks,
-                key = { "block-${it.id}" },
-            ) { block ->
-                CalendarBlockRow(
-                    block = block,
-                    propertyName = propertyNames[block.propertyId].orEmpty(),
-                    onUnblock = { viewModel.deleteBlock(block.id) },
+            if (selectedBookings.isEmpty() && selectedBlocks.isEmpty()) {
+                item {
+                    EmptyStateCard(
+                        title = stringResource(R.string.date_available),
+                        body = stringResource(R.string.date_available_body),
+                        icon = Icons.Outlined.Event,
+                        compact = true,
+                    )
+                }
+            } else {
+                items(
+                    items = selectedBookings,
+                    key = { "booking-${it.id}" },
+                ) { booking ->
+                    CalendarBookingRow(
+                        booking = booking,
+                        propertyName = propertyNames[booking.propertyId].orEmpty(),
+                        onClick = { onBookingClick(booking.id) },
+                    )
+                }
+
+                items(
+                    items = selectedBlocks,
+                    key = { "block-${it.id}" },
+                ) { block ->
+                    CalendarBlockRow(
+                        block = block,
+                        propertyName = propertyNames[block.propertyId].orEmpty(),
+                        onUnblock = { viewModel.deleteBlock(block.id) },
+                    )
+                }
+            }
+
+            item {
+                CalendarSelectedDateActions(
+                    canCreate = !selectedDayUnavailable,
+                    onBook = {
+                        onNewBooking(selectedDay, selectedPropertyId)
+                    },
+                    onBlock = {
+                        onBlockDate(selectedDay, selectedPropertyId)
+                    },
                 )
             }
-        }
-
-        item {
-            CalendarSelectedDateActions(
-                canCreate = !selectedDayUnavailable,
-                onBook = {
-                    onNewBooking(selectedDay, selectedPropertyId)
-                },
-                onBlock = {
-                    onBlockDate(selectedDay, selectedPropertyId)
-                },
-            )
         }
     }
 }
@@ -529,14 +655,27 @@ private fun DayCell(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isDarkBookedCell = hasStay && !isSelected && !hasBlock
     val container = when {
         isSelected -> MaterialTheme.colorScheme.primaryContainer
         hasBlock -> MaterialTheme.colorScheme.surfaceVariant
-        hasStay -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
+        hasStay -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.surface
     }
+    val contentColor = if (isDarkBookedCell) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
     val border = if (isToday) {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        BorderStroke(
+            1.dp,
+            if (isDarkBookedCell) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
+        )
     } else {
         null
     }
@@ -551,6 +690,7 @@ private fun DayCell(
             ),
         shape = MaterialTheme.shapes.medium,
         color = container,
+        contentColor = contentColor,
         border = border,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -645,6 +785,126 @@ private fun CalendarBookingRow(
                 modifier = Modifier.size(17.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun CalendarMonthBookingRow(
+    booking: BookingEntity,
+    propertyName: String,
+    locale: java.util.Locale,
+    onClick: () -> Unit,
+) {
+    val statusColor = when (booking.status) {
+        BookingStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
+        BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.primaryContainer
+        BookingStatus.CHECKED_IN -> MaterialTheme.colorScheme.secondaryContainer
+        BookingStatus.CHECKED_OUT -> MaterialTheme.colorScheme.surfaceVariant
+        BookingStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = statusColor,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.HomeWork,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Text(
+                    text = booking.guestName,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                )
+                Text(
+                    text = propertyName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+                Text(
+                    text = stringResource(
+                        R.string.booking_date_range,
+                        formatEpochDay(booking.checkInEpochDay, locale),
+                        formatEpochDay(booking.checkOutEpochDay, locale),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Text(
+                text = stringResource(booking.status.labelRes()),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CalendarMonthBlockRow(
+    block: BlockedDateEntity,
+    propertyName: String,
+    locale: java.util.Locale,
+    onClick: () -> Unit,
+) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Block,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.blocked),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    text = buildString {
+                        append(propertyName)
+                        block.reason?.takeIf { it.isNotBlank() }?.let {
+                            append(" · ")
+                            append(it)
+                        }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                )
+                Text(
+                    text = stringResource(
+                        R.string.booking_date_range,
+                        formatEpochDay(block.startEpochDay, locale),
+                        formatEpochDay(block.endEpochDay - 1L, locale),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
     }
 }
